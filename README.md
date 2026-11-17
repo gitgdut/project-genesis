@@ -1,5 +1,39 @@
 # Project GENESIS
 
+## New prototype: walk inside an epoch
+
+**文明观测站** is an optional first-person view of the existing simulation:
+walk between four civilizations, inspect residents and resource stations,
+rewind days, and independently recompute the final result. It uses original
+procedural models and a restrained violet palette. The existing game below
+is preserved. This is an observation prototype, not a finished sandbox:
+walking and prediction markers do not change the economic rules.
+
+From the repository root, Windows PowerShell 5.1 (Python 3.12; no Node build,
+wallet, Foundry, or API key needed for this page):
+
+```powershell
+py -3.12 -m http.server 8000 --bind 127.0.0.1 --directory frontend
+```
+
+In another PowerShell window:
+
+```powershell
+Start-Process 'http://127.0.0.1:8000/world.html'
+```
+
+Select a civilization → enter its campus → **WASD** to walk, mouse drag
+or **←/→** to turn, **E** to inspect → advance days or fast-forward →
+**中央账本 → 独立重算本局 → 导出报告**. The new page sends **no chain
+transactions**; its report explicitly records `chain.submitted: false`.
+Use **积分对局** to return to the original game.
+
+See [play guide and implementation](docs/WORLD_STUDIO.md),
+[reference study and originality boundaries](docs/REFERENCE_STUDY.md), and
+[actual validation results](docs/validation/WORLD_STUDIO_CHECKS.md).
+
+## Existing civilization game
+
 **Civilisations rise and fall in 3 minutes — bet on the survivor; every
 epoch ends in a hash anyone can recompute.**
 

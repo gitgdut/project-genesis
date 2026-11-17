@@ -407,3 +407,42 @@ h1, h2, h3 { font-weight: 700; letter-spacing: -.01em; }
 .settle-check { font-size: 14px; margin-top: 10px; }
 .settle-check.ok { color: var(--green); }
 .settle-check.bad { color: var(--red); }
+
+/* ================= v5: game-first Blitz redesign ================= */
+/* demo bar: the 3 steps of the 60-second pitch */
+.demo-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; font-size: 14px; }
+.demo-step b { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; align-items: center; justify-content: center; font-size: 12px; margin-right: 6px; }
+.demo-arrow { color: var(--dim); }
+.demo-note { margin-left: auto; color: var(--gold); font-weight: 600; font-size: 13px; }
+
+/* three "why it's fun" cards */
+.hook-rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.rule-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; transition: border-color .25s ease, transform .25s var(--ease); }
+.rule-card:hover { border-color: rgba(232,179,75,.5); transform: translateY(-2px); }
+.rule-emoji { font-size: 26px; }
+.rule-card h4 { font-size: 15px; margin: 10px 0 4px; }
+.rule-card p { font-size: 13.5px; color: var(--muted); }
+
+/* civ identity: color-coded top border + emoji */
+.lane { border-top: 3px solid var(--civ); }
+.lane-emoji { font-size: 24px; margin-right: 8px; }
+
+/* survivor reveal: big winner emoji + pop */
+.settle-emoji { font-size: 64px; line-height: 1; animation: reveal-pop .6s var(--ease) both; filter: drop-shadow(0 0 24px var(--civ, #e8b34b)); }
+@keyframes reveal-pop { from { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.15); } to { transform: scale(1); opacity: 1; } }
+.settle-panel { animation: settle-in .5s var(--ease) both; }
+@keyframes settle-in { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* fast-forward button: the demo-safe path, gold to stand out */
+#btn-fast-forward { border-color: rgba(232,179,75,.6); color: var(--gold); }
+#btn-fast-forward:hover:not(:disabled) { border-color: var(--gold); background: rgba(232,179,75,.12); }
+#btn-fast-forward:disabled { opacity: .45; }
+
+@media (max-width: 900px) {
+  .hook-rules { grid-template-columns: 1fr; }
+  .demo-note { margin-left: 0; }
+  .settle-emoji { font-size: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settle-emoji, .settle-panel { animation: none; }
+}

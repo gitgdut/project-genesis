@@ -62,6 +62,14 @@ sharing. QR target: `https://mia03ther.github.io/project-genesis/sandbox.html`.
 QR generation used a development-only `npx --package qrcode` command; it is
 not a runtime dependency. No new Python runtime dependency was added.
 
+The demo was published to GitHub Pages from a dedicated `gh-pages` branch.
+Public HTTP checks returned 200 with appropriate content types for the HTML,
+application/model/scene modules, registry bytecode and Three.js runtime.
+Local browser gameplay was verified; the browser automation connection
+subsequently timed out while opening the public URL, including an inventory
+request. Thus the public site has HTTP verification, not a completed public
+browser or real-phone playtest. `main` was not merged or replaced.
+
 ## Blockchain implementation and limits
 
 `contracts/GenesisBlueprints.sol` stores up to 8192 bytes per content digest.
@@ -142,7 +150,7 @@ node frontend/sandbox/anvil.mjs
 node --test frontend/studio/verify.mjs
 ```
 
-Actual results: sandbox **6/6**, Solidity **2/2**, local Anvil deployment,
+Actual results: sandbox **7/7**, Solidity **2/2**, local Anvil deployment,
 publication, historical storage read and exact reconstruction **passed**;
 tampered digest rejected. Existing Python tests **635 passed in 33.72s**,
 strict mypy **24 files clean**, previous scene checks **9/9**.

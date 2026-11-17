@@ -222,6 +222,12 @@ const GAME_PLAYER = "you";
 const START_BALANCE_CENTS = 100000; // 1000 play credits
 const MIN_BET_CENTS = 1000; // 10 play credits
 const CIV_COLORS = ["#836ef9", "#6ee7f9", "#fb923c", "#e8b34b"]; // Aurora, Boreas, Cinder, Dune
+const CIV_META = [
+  { emoji: "🌌", tag: "极光之城", vibe: "冷静，活得久" },
+  { emoji: "🌪️", tag: "北风之国", vibe: "莽，但快" },
+  { emoji: "🔥", tag: "余烬之城", vibe: "火爆，敢赌" },
+  { emoji: "🏜️", tag: "沙丘之国", vibe: "苟住，别浪" },
+];
 const MS_PER_DAY = { 1: 3000, 2: 1500, 6: 500 }; // 1x: 60 days * 3s = 180s = 3 minutes
 const EPOCH_CIVS = 4;
 const EPOCH_RESIDENTS = 5;
@@ -312,10 +318,10 @@ function renderLanes() {
   wrap.innerHTML = Engine.CIV_NAMES.map((name, i) => `
     <article class="lane" data-civ="${i}" style="--civ:${CIV_COLORS[i]}">
       <div class="lane-head">
-        <span class="lane-name">${name}</span>
+        <span class="lane-name"><span class="lane-emoji">${CIV_META[i].emoji}</span>${name}</span>
         <span class="lane-rank" id="lane-rank-${i}"></span>
       </div>
-      <div class="lane-tag">种子 ${Engine.civSeed(epoch.seed, i)} · 5 位居民</div>
+      <div class="lane-tag">${CIV_META[i].tag} · ${CIV_META[i].vibe} · 种子 ${Engine.civSeed(epoch.seed, i)} · 5 位居民</div>
       <div class="lane-race"><div class="lane-streak"></div><div class="lane-fill" id="lane-fill-${i}" style="width:0%"></div></div>
       <div class="lane-stats">
         <div><span>存活</span><b id="lane-alive-${i}">5</b></div>
@@ -463,6 +469,7 @@ function newEpoch() {
   $("btn-start-epoch").textContent = "▶ 开始一局";
   $("btn-pause-epoch").disabled = true;
   $("btn-pause-epoch").textContent = "⏸ 暂停";
+  $("btn-fast-forward").disabled = true;
   $("btn-place-bet").disabled = false;
   $("game-seed").disabled = false;
   $("game-days").disabled = false;
@@ -491,6 +498,7 @@ function startEpoch() {
   $("btn-start-epoch").textContent = "进行中…";
   $("btn-pause-epoch").disabled = false;
   $("btn-place-bet").disabled = true;
+  $("btn-fast-forward").disabled = false;
   $("game-seed").disabled = true;
   $("game-days").disabled = true;
   const staked = poolTotalCents();
@@ -525,6 +533,31 @@ function tickEpoch() {
   renderGameStatus();
   updateLanes();
   if (epoch.day >= epoch.days) finishEpoch();
+}
+
+/* Demo fast-forward: step every remaining day synchronously through the
+ * real engine (no faking — the same sim.step() calls tickEpoch makes),
+ * then settle. This is the 60-second demo path: bet -> start ->
+ * fast-forward -> reveal, instead of waiting 3 minutes on stage. */
+function fastForwardEpoch() {
+  if (!epoch || epoch.phase !== "running") return;
+  clearInterval(tickTimer);
+  tickTimer = null;
+  epochPaused = false;
+  $("btn-pause-epoch").textContent = "⏸ 暂停";
+  const fromDay = epoch.day;
+  while (epoch.day < epoch.days) {
+    epoch.day += 1;
+    epoch.worlds.forEach((w, i) => {
+      w.sim.step();
+      epoch.live[i] = liveStats(w.world);
+    });
+  }
+  const dead = epoch.live.filter((s) => s.alive === 0).length;
+  feedAdd(`⏩ 快进：Day ${fromDay} → Day ${epoch.days} 已用真实引擎瞬间算完（${dead} 个文明灭亡）。`, "info");
+  renderGameStatus();
+  updateLanes();
+  finishEpoch();
 }
 
 /* Build the epoch result in runEpoch's exact shape, then cross-check it
@@ -579,6 +612,7 @@ function finishEpoch() {
   $("game-phase-sub").textContent = "摘要已生成 · 可验证";
   setLifecycle("finalized");
   $("btn-pause-epoch").disabled = true;
+  $("btn-fast-forward").disabled = true;
   for (const r of result.civs) {
     const b = board[r.id] || (board[r.id] = { wins: 0, played: 0, bestAlive: 0, bestScore: 0 });
     b.played += 1;
@@ -592,7 +626,9 @@ function finishEpoch() {
   /* settlement panel */
   $("settle-panel").hidden = false;
   $("settle-epoch-label").textContent = `第 ${epochNo} 局 · ${epoch.days} 天 · ${result.epoch_id}`;
-  $("settle-winner").textContent = `🏆 胜者：${result.winner_name}`;
+  $("settle-winner").textContent = `${CIV_META[result.winner].emoji} 胜者：${result.winner_name}`;
+  $("settle-emoji").textContent = CIV_META[result.winner].emoji;
+  $("settle-emoji").style.setProperty("--civ", CIV_COLORS[result.winner]);
   const w = result.civs[result.winner];
   const outcomeText = {
     settled: `总池 ${fmtC(settlement.pool)}，赢家分走全部（庄家抽成 0）。`,
@@ -650,6 +686,7 @@ function initGame() {
     if (epochPaused) { clearInterval(tickTimer); tickTimer = null; }
     else tickTimer = setInterval(tickEpoch, MS_PER_DAY[speed]);
   });
+  $("btn-fast-forward").addEventListener("click", fastForwardEpoch);
   document.querySelectorAll(".speed-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       speed = Number(btn.dataset.speed);

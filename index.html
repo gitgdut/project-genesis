@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GENESIS — 文明 3 分钟兴衰 · 押注幸存者</title>
+<title>GENESIS — 4 个文明打 3 分钟，押中活下来的分钱</title>
 <meta name="description" content="Project GENESIS 押注游戏：4 个文明在浏览器里并行演化 100 天，谁活下来谁就赢。演示积分，不是真钱；每一局的摘要都可以在 Monad Testnet 上验证。">
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css">
@@ -31,13 +31,14 @@
   <section class="game" id="game">
     <div class="game-inner">
       <p class="eyebrow"><span class="dot-live"></span> LIVE · MONAD TESTNET · <span class="play-money" data-play-money>演示积分 · 不是真钱</span></p>
-      <h1>文明 3 分钟兴衰 —— <em>押注幸存者。</em></h1>
-      <p class="hero-en">Four civilisations race in parallel for 60 days. Bet on the one that survives.</p>
-      <p class="hero-note">Aurora、 Boreas、 Cinder、 Dune 四个文明并行演化 60 天，每文明 5 位居民。得分 = 存活 × 1,000,000 + 总财富（分）+ 总健康 × 100，得分最高者胜出；种子 42 那一局是 Cinder 赢了。</p>
+      <h1>4 个文明打 3 分钟，<em>押中活下来的分钱。</em></h1>
+      <p class="hero-en">Four civilisations. Three minutes. One survivor. Bet on it.</p>
+      <p class="hero-note">不用钱包，打开就能玩 —— 演示积分，不是真钱。为什么是 Monad：每局结算要上链，Monad 出块快、并行执行，多笔下注能同时结算，3 分钟一局才跑得起来。</p>
 
       <div class="game-controls">
         <button class="btn btn-play btn-hero" id="btn-start-epoch">▶&nbsp; 开始一局</button>
         <button class="btn btn-ghost btn-hero" id="btn-pause-epoch" disabled>⏸ 暂停</button>
+        <button class="btn btn-ghost btn-hero" id="btn-fast-forward" disabled>⏩ 快进到结算</button>
         <label class="ctl ctl-inline"><span>种子 Seed</span><input type="number" id="game-seed" value="42" min="0" max="1000000000" step="1"></label>
         <label class="ctl ctl-inline"><span>天数 Days <b class="ctl-val" id="game-days-val">60</b></span><input type="range" id="game-days" min="30" max="90" step="1" value="60"></label>
         <div class="speed-group" role="group" aria-label="速度">
@@ -48,6 +49,19 @@
         <button class="btn btn-ghost btn-sm" id="btn-reset-balance">重置积分</button>
       </div>
       <p class="game-note" id="game-note">点「开始一局」：先下注，封盘后 4 条文明赛道并行开跑，每 3 秒演化一天，60 天后结算 —— 赢家分走整个底池（庄家抽成 0）。</p>
+
+      <!-- 60-second demo flow + why it's fun -->
+      <div class="demo-bar">
+        <span class="demo-step"><b>①</b> 选一个文明下注</span><span class="demo-arrow">→</span>
+        <span class="demo-step"><b>②</b> 点 ⏩ 快进到结算</span><span class="demo-arrow">→</span>
+        <span class="demo-step"><b>③</b> 揭晓幸存者 · 分钱 · 验摘要</span>
+        <span class="demo-note">60 秒演示：不用等 3 分钟，不用钱包。</span>
+      </div>
+      <div class="hook-rules">
+        <div class="rule-card"><span class="rule-emoji">🎰</span><h4>赢家分池 · 抽成 0</h4><p>所有人的注加起来，赢家按投注比例全拿走，一分不留给庄家。</p></div>
+        <div class="rule-card"><span class="rule-emoji">💸</span><h4>没人押中？全额退款</h4><p>胜者要是没人押，全部投注原路退回，什么都不滚存。</p></div>
+        <div class="rule-card"><span class="rule-emoji">🔍</span><h4>结果可重算 · 链上可验</h4><p>同样的种子重跑，摘要一字不差；种子 42 的世界已锚定在 Monad 测试网。</p></div>
+      </div>
 
       <!-- status bar -->
       <div class="game-status">
@@ -102,6 +116,7 @@
           <span class="badge badge-ok" id="settle-badge">● 已敲定 Finalized</span>
           <span class="settle-epoch" id="settle-epoch-label"></span>
         </div>
+        <div class="settle-emoji" id="settle-emoji" aria-hidden="true">🏆</div>
         <h2 id="settle-winner"></h2>
         <p id="settle-summary"></p>
         <p class="settle-check" id="settle-check"></p>

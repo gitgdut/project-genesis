@@ -1,5 +1,21 @@
 # Project GENESIS
 
+## Monad Blitz demo: Island Lab
+
+**组装一座会呼吸的浮岛，发布能被别人重建的链上蓝图。**
+
+Open **[Island Lab](https://mia03ther.github.io/project-genesis/sandbox.html)**
+or serve `frontend/` and open `/sandbox.html`. See
+[demo guide, chain boundaries and actual checks](docs/ISLAND_DEMO.md).
+The QR code is [docs/island-qr.png](docs/island-qr.png).
+
+Choose a module → tap a tile → connect power → house residents → light the
+beacon. Dismantling refunds materials; disconnected facilities stop working.
+Desktop supports WASD island visits; phones have touch building and movement.
+No wallet is needed to build. Publishing requires an explicitly authorized
+wallet transaction on Monad Testnet. The new contract flow has been tested
+on **Anvil-local**, not yet executed on public Monad Testnet.
+
 ## New prototype: walk inside an epoch
 
 **文明观测站** is an optional first-person view of the existing simulation:

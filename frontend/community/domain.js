@@ -11,14 +11,14 @@ export const TYPES = [
 ];
 export const LABELS = [
   "",
-  "Power Link",
-  "Grid Turbine",
-  "Habitat",
-  "Bio Garden",
-  "Fabricator",
-  "Crystal Lab",
-  "Signal Beacon",
-  "Genesis Core",
+  "电网线",
+  "风力塔",
+  "居住舱",
+  "生态园",
+  "制造厂",
+  "晶石坊",
+  "信标",
+  "城市核心",
 ];
 export const COST = [0, 1, 5, 3, 3, 3, 3, 6];
 export const cellFor = (x, z) => (z + 4) * 9 + x + 4;

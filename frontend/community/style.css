@@ -126,6 +126,41 @@ header {
 header > * {
   pointer-events: auto;
 }
+.broadcast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  color: #d9cce8;
+  border: 1px solid #ff5ba03d;
+  background: #100719b8;
+  backdrop-filter: blur(14px);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+.broadcast i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff4f92;
+  box-shadow: 0 0 14px #ff4f92;
+  animation: live-pulse 1.3s ease-in-out infinite;
+}
+.broadcast b {
+  color: #ff78b3;
+}
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
 .brand {
   font-weight: 800;
   font-size: 22px;
@@ -484,6 +519,9 @@ dialog summary {
   display: none;
 }
 @media (max-width: 760px) {
+  .broadcast {
+    display: none;
+  }
   header {
     padding: 15px;
   }

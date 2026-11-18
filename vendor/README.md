@@ -21,3 +21,12 @@ Total runtime JavaScript size is about 2 MB before compression. WebGL 2 is
 required. This dependency does not change the Python runtime requirements.
 The scoped Git attributes preserve upstream line endings and its existing
 space-before-tab indentation rather than editing the distributed library.
+
+## Invitation QR codes
+
+`qrcode.mjs` is the unmodified `dist/qrcode.mjs` from the official npm
+package `qrcode-generator@2.0.4` (Kazuhiko Arase). Its upstream copyright
+and MIT license link are retained; the MIT text is included in
+`QRCODE-LICENSE.txt`. It creates QR codes locally in the browser. No invite
+URL is sent to a third-party QR service. Upstream:
+https://github.com/kazuhikoarase/qrcode-generator

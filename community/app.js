@@ -3,7 +3,9 @@ import {
   TYPES,
   LABELS,
   COST,
+  CREWS,
   cellFor,
+  nextContribution,
   sceneView,
   validateAction,
 } from "./domain.js";
@@ -42,7 +44,11 @@ let mode = "practice",
   lastRevision = -1,
   lastBlock = null,
   feed = [],
-  tourRunning = false;
+  tourRunning = false,
+  advancedMode = false,
+  activeCrew = readSession("genesis.crew") ?? "power",
+  confirmationSamples = [];
+if (!CREWS.some((crew) => crew.id === activeCrew)) activeCrew = "power";
 function readSession(key) {
   try {
     return sessionStorage.getItem(key);
@@ -178,6 +184,33 @@ function showFeed() {
     $("feed").append(li);
   }
 }
+function median(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+function renderCrewConsole() {
+  const crew = CREWS.find((item) => item.id === activeCrew) ?? CREWS[0];
+  const action = nextContribution(snapshot, crew.id);
+  for (const button of $("crews").children)
+    button.setAttribute("aria-pressed", String(button.dataset.crew === crew.id));
+  const quick = $("quick-action");
+  quick.disabled =
+    busy || tourRunning || snapshot.phase === 3 || snapshot.restored || !action;
+  quick.querySelector("small").textContent = `${crew.label} / ${crew.zh}`;
+  quick.querySelector("strong").textContent = snapshot.restored
+    ? "CITY ZERO ONLINE"
+    : action
+      ? crew.verb
+      : "本组任务已完成";
+  quick.querySelector("span").textContent =
+    mode === "practice"
+      ? "点击立即模拟 · 现场模式等待链上确认"
+      : "ONE TAP · ONE CONFIRMED TRANSACTION";
+}
 function render(force = false) {
   document.body.classList.toggle(
     "restored",
@@ -213,6 +246,9 @@ function render(force = false) {
   $("people").textContent = snapshot.participants;
   $("power").textContent = `${snapshot.used}/${snapshot.supply}`;
   $("homes").textContent = `${snapshot.homes}/2`;
+  $("confirmed-actions").textContent = snapshot.revision;
+  const p50 = median(confirmationSamples);
+  $("median-latency").textContent = p50 === null ? "—" : `${p50.toFixed(1)}s`;
   $("goals").replaceChildren(
     ...[
       [snapshot.supply > 1, "接通风力塔"],
@@ -260,6 +296,7 @@ function render(force = false) {
       snapshot.owners[choice.cell]?.toLowerCase() !==
         (mode === "practice" ? role : actor)?.toLowerCase());
   $("download").disabled = busy;
+  renderCrewConsole();
   showFeed();
   $("room-explain").textContent =
     mode === "local"
@@ -280,6 +317,10 @@ function clearChoice() {
 }
 function selectCell({ x, z }) {
   if (wall || busy || tourRunning) return;
+  if (!advancedMode) {
+    message("主玩法不需要选地块：选择小队，然后点击底部的大按钮。");
+    return;
+  }
   if (snapshot.phase === 3) {
     message("Mission timeout. The host can reset CITY ZERO for another run.");
     return;
@@ -363,6 +404,8 @@ async function poll(fast = false) {
             "Action failed. Confirmed onchain credits remain authoritative.",
           );
         } else {
+          if (elapsed !== null) confirmationSamples.push(elapsed);
+          confirmationSamples = confirmationSamples.slice(-31);
           $("latency").textContent =
             network +
             (elapsed === null ? " · CONFIRMED" : ` · ${elapsed.toFixed(1)}S`);
@@ -556,6 +599,22 @@ async function submit() {
     render();
   }
 }
+async function quickContribution() {
+  if (busy || tourRunning || snapshot.phase === 3 || snapshot.restored) return;
+  const action = nextContribution(snapshot, activeCrew);
+  if (!action) {
+    message("这个小队的目标已经完成。选择另一个仍在闪烁的小队。");
+    return;
+  }
+  if (mode === "practice") {
+    role = { power: "A", habitat: "B", lifeline: "C" }[activeCrew];
+    try {
+      sessionStorage.setItem("genesis.role", role);
+    } catch {}
+  }
+  choice = action;
+  await submit();
+}
 async function openMonad(address) {
   const g = new CommunityGateway(
     publicRpc,
@@ -660,6 +719,22 @@ for (const k of [2, 3, 4, 7, 1]) {
   };
   $("palette").append(b);
 }
+for (const crew of CREWS) {
+  const button = document.createElement("button");
+  button.dataset.crew = crew.id;
+  button.innerHTML = `<b>${crew.label}</b><span>${crew.zh}</span>`;
+  button.setAttribute("aria-pressed", String(crew.id === activeCrew));
+  button.onclick = () => {
+    activeCrew = crew.id;
+    try {
+      sessionStorage.setItem("genesis.crew", activeCrew);
+    } catch {}
+    renderCrewConsole();
+    message(`${crew.zh}已就位。点击主按钮贡献下一步。`);
+  };
+  $("crews").append(button);
+}
+$("quick-action").onclick = quickContribution;
 $("confirm").onclick = submit;
 $("cancel").onclick = clearChoice;
 $("rotate").onclick = () => {
@@ -669,6 +744,17 @@ $("rotate").onclick = () => {
     choice.rotation = rotation;
     message("ORIENTATION UPDATED: " + rotation * 90 + "°");
   }
+};
+$("advanced").onclick = () => {
+  advancedMode = !advancedMode;
+  $("manual-tools").hidden = !advancedMode;
+  $("advanced").textContent = advancedMode ? "退出高级建造" : "高级建造";
+  clearChoice();
+  message(
+    advancedMode
+      ? "高级建造已开启：选择模块，再点击相邻地块。"
+      : "回到现场玩法：选择小队，一键贡献。",
+  );
 };
 $("walk").onclick = () => {
   const walking = scene.toggleWalk();
@@ -749,8 +835,9 @@ $("help").onclick = () => $("briefing-dialog").showModal();
 $("briefing-close").onclick = closeBriefing;
 $("briefing-start").onclick = () => {
   closeBriefing();
-  if (mode === "practice") $("tour").click();
-  else message("当前是现场房间。选择模块，点击相邻空地并确认即可参与。");
+  activeCrew = "power";
+  renderCrewConsole();
+  message("先选择 POWER，然后点击底部的大按钮。");
 };
 $("briefing-live").onclick = () => {
   closeBriefing();

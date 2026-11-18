@@ -22,11 +22,13 @@
       >
       <div class="header-actions">
         <span id="mode" class="badge">ROOM STANDBY</span
+        ><button id="help" aria-label="打开任务教程">?</button
         ><button id="invite">邀请队友 ↗</button><button id="menu">房间</button>
       </div>
     </header>
     <div class="broadcast" aria-hidden="true">
-      <i></i><b>LIVE</b><span>CITY ZERO EMERGENCY NETWORK</span>
+      <i></i><b>LIVE</b><span>CITY ZERO EMERGENCY NETWORK</span
+      ><em id="latency">CONFIRMATION —</em>
     </div>
     <section class="objective">
       <span class="eyebrow">CITY ZERO / GRID FAILURE</span>
@@ -83,6 +85,42 @@
       ><button data-move="s" aria-label="Move backward">↓</button
       ><button data-move="d" aria-label="Move right">→</button>
     </div>
+    <dialog id="briefing-dialog" class="briefing">
+      <button id="briefing-close" class="close" aria-label="关闭任务教程">
+        ×</button
+      ><span class="eyebrow">MISSION BRIEF / 20 SEC</span>
+      <h2>救活 CITY ZERO</h2>
+      <p class="briefing-lead">
+        城市核心即将锁死。至少三名队员必须在 90 秒内恢复四个生命系统。
+      </p>
+      <ol class="briefing-steps">
+        <li>
+          <b>1</b
+          ><span
+            ><strong>选模块</strong>底部选择风力塔、居住舱、生态园或信标。</span
+          >
+        </li>
+        <li>
+          <b>2</b
+          ><span><strong>接入电网</strong>点击核心或已有建筑旁边的空地。</span>
+        </li>
+        <li>
+          <b>3</b
+          ><span
+            ><strong>等待确认</strong>合约确认后，城市才会真正发生变化。</span
+          >
+        </li>
+      </ol>
+      <div class="mission-rule">
+        <span>通关条件</span
+        ><b>风力塔 ×1 · 居住舱 ×2 · 生态园 ×1 · 信标 ×1 · 队员 ≥3</b>
+      </div>
+      <div class="briefing-actions">
+        <button id="briefing-start" class="primary">30 秒引导练习</button
+        ><button id="briefing-live">加入现场房间</button>
+      </div>
+      <small>练习不计时、不上链；现场模式只显示真实确认结果。</small>
+    </dialog>
     <dialog id="room-dialog">
       <button id="restart-room" hidden>主持人：新开 90 秒任务</button>
       <button id="room-close" class="close" aria-label="Close room settings">

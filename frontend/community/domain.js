@@ -11,14 +11,14 @@ export const TYPES = [
 ];
 export const LABELS = [
   "",
-  "能量桥",
-  "风力塔",
-  "居民舱",
-  "生态园",
-  "木工坊",
-  "晶石坊",
-  "星际信标",
-  "创世核心",
+  "Power Link",
+  "Grid Turbine",
+  "Habitat",
+  "Bio Garden",
+  "Fabricator",
+  "Crystal Lab",
+  "Signal Beacon",
+  "Genesis Core",
 ];
 export const COST = [0, 1, 5, 3, 3, 3, 3, 6];
 export const cellFor = (x, z) => (z + 4) * 9 + x + 4;
@@ -104,7 +104,8 @@ export function sceneView(snapshot) {
 }
 export function validateAction(board, actor, balance, action) {
   const { cell, type, kind, rotation = 0 } = action;
-  if (!validCell(cell) || cell === 40) throw Error("请选择岛内的可建造地块");
+  if (!validCell(cell) || cell === 40)
+    throw Error("Choose an available district tile");
   if (type === "build") {
     if (
       !Number.isInteger(kind) ||
@@ -114,18 +115,20 @@ export function validateAction(board, actor, balance, action) {
       rotation < 0 ||
       rotation > 3
     )
-      throw Error("无效模块或方向");
-    if (board.kinds[cell]) throw Error("这块地已经被建造，请刷新后选择空地");
+      throw Error("Invalid module or orientation");
+    if (board.kinds[cell])
+      throw Error("This tile is occupied; refresh and choose another");
     if (!neighbors(cell).some((i) => board.kinds[i]))
-      throw Error("请贴着核心或已有建筑组装");
-    if (balance < COST[kind]) throw Error("建造额度不足，可以拆回自己的模块");
+      throw Error("Connect to the core or an existing module");
+    if (balance < COST[kind])
+      throw Error("Not enough build credits; reclaim one of your modules");
   } else if (type === "remove") {
     if (
       !board.kinds[cell] ||
       board.owners[cell]?.toLowerCase() !== actor?.toLowerCase()
     )
-      throw Error("只能拆解自己建造的模块");
-  } else throw Error("未知操作");
+      throw Error("You can only reclaim modules you built");
+  } else throw Error("Unknown action");
 }
 export class Practice {
   constructor() {
@@ -148,8 +151,9 @@ export class Practice {
     };
   }
   apply(actor, action) {
-    if (!["A", "B", "C"].includes(actor)) throw Error("未知练习角色");
-    if (this.trace.length >= 240) throw Error("练习已达 240 步，请保存后重开");
+    if (!["A", "B", "C"].includes(actor)) throw Error("Unknown practice role");
+    if (this.trace.length >= 240)
+      throw Error("Practice reached 240 actions; export and restart");
     const balance = this.balances[actor] ?? 12;
     validateAction(this, actor, balance, action);
     const { cell, type, kind, rotation = 0 } = action;
@@ -183,7 +187,7 @@ export class Practice {
   }
   static restore(text) {
     if (typeof text !== "string" || text.length > 40000)
-      throw Error("练习记录过大");
+      throw Error("Practice trace is too large");
     const d = JSON.parse(text);
     if (
       d.format !== "genesis.community.practice" ||
@@ -191,10 +195,10 @@ export class Practice {
       !Array.isArray(d.actions) ||
       d.actions.length > 240
     )
-      throw Error("不支持的练习记录");
+      throw Error("Unsupported practice trace");
     const w = new Practice();
     for (const a of d.actions) w.apply(a.actor, a);
-    if (w.export() !== text) throw Error("非规范练习记录");
+    if (w.export() !== text) throw Error("Non-canonical practice trace");
     return w;
   }
 }

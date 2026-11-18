@@ -75,7 +75,7 @@ function tickClock() {
     return;
   }
   if (snapshot.phase === 2) {
-    $("clock").textContent = "已完成";
+    $("clock").textContent = "任务完成";
     return;
   }
   if (snapshot.phase === 3) {
@@ -134,17 +134,17 @@ function invitations() {
   $("share-url").value = url;
   $("share-note").textContent =
     mode === "practice"
-      ? "这是本机练习入口，不会连接到你的私人练习存档。"
+      ? "This is a local practice entry. It does not connect to another private practice save."
       : mode === "local"
-        ? "仅同一局域网内可用；本地 Anvil 演练，不是 Monad Testnet。"
-        : "同一合约，同一座岛。观看无需钱包，建造需要测试钱包与测试 MON。";
+        ? "Trusted LAN only. This is an Anvil rehearsal, not Monad Testnet."
+        : "One contract, one city. Viewing is wallet-free; building requires a test wallet and test MON.";
   $("qr").innerHTML = svg(url);
   $("projection").href = roomUrl(true);
   $("wall-qr").innerHTML = svg(url);
   $("wall-url").textContent = url;
   $("wall-source").textContent =
     mode === "practice"
-      ? "本机练习 · 非链上"
+      ? "LOCAL PRACTICE · OFFCHAIN"
       : mode === "local"
         ? "ANVIL LOCAL · 31337"
         : "MONAD TESTNET · 10143";
@@ -156,7 +156,7 @@ function showFeed() {
       const li = document.createElement("li");
       li.append(
         document.createTextNode(
-          `${short(e.actor)} ${e.type === "build" ? "组装了 " + LABELS[e.kind] : "拆回一个模块"} · #${e.revision}`,
+          `${short(e.actor)} ${e.type === "build" ? "deployed " + LABELS[e.kind] : "reclaimed a module"} · #${e.revision}`,
         ),
       );
       if (e.tx && mode === "monad") {
@@ -164,7 +164,7 @@ function showFeed() {
         a.href = MONAD.explorer + "/tx/" + e.tx;
         a.target = "_blank";
         a.rel = "noopener";
-        a.textContent = " 查看交易";
+        a.textContent = " VIEW TX";
         li.append(a);
       }
       return li;
@@ -173,21 +173,21 @@ function showFeed() {
   if (!items.length) {
     const li = document.createElement("li");
     li.textContent =
-      mode === "practice" ? "从一座风塔开始。" : "等待下一位建造者的链上贡献。";
+      mode === "practice" ? "先接通第一座风力塔。" : "等待下一笔已确认贡献。";
     $("feed").append(li);
   }
 }
 function render(force = false) {
   $("objective-copy").textContent =
     mode === "practice"
-      ? "先用无计时练习学会组装，再邀请大家挑战 90 秒共建。"
+      ? "先用无计时练习掌握操作，再发起 90 秒现场任务。"
       : snapshot.phase === 2
-        ? "挑战已完成。现在可以自由组装，拆接电网，继续改变这座岛。"
+        ? "CITY ZERO 已上线。自由建造已解锁。"
         : snapshot.phase === 3
-          ? "本局挑战结束。主持人可新开一局，再试一次配合。"
+          ? "任务已超时。主持人可以重开一局。"
           : snapshot.phase === 0
-            ? "等大家加入后再动手：第一块确认后，90 秒开始。"
-            : "分工建造，在 90 秒内接通风塔、居民舱、生态园与信标。";
+            ? "先召集队友；第一笔确认后开始 90 秒倒计时。"
+            : "分工恢复风力塔、居住舱、生态园与信标。";
   if (!clockTimer) clockTimer = setInterval(tickClock, 250);
   tickClock();
   $("restart-room").hidden =
@@ -200,22 +200,22 @@ function render(force = false) {
   }
   $("mode").textContent =
     mode === "practice"
-      ? "本机练习 · 非链上"
+      ? "LOCAL PRACTICE · OFFCHAIN"
       : mode === "local"
-        ? "Anvil 本地链 · 现场演练"
-        : "Monad Testnet · 共建房间";
-  $("people-label").textContent = mode === "practice" ? "贡献角色" : "贡献地址";
+        ? "ANVIL LOCAL · 现场演练"
+        : "MONAD TESTNET · 现场房间";
+  $("people-label").textContent = mode === "practice" ? "角色" : "队员";
   $("people").textContent = snapshot.participants;
   $("power").textContent = `${snapshot.used}/${snapshot.supply}`;
   $("homes").textContent = `${snapshot.homes}/2`;
   $("goals").replaceChildren(
     ...[
-      [snapshot.supply > 1, "接通风塔"],
-      [snapshot.homes >= 2, "安置两座居民舱"],
-      [snapshot.gardens >= 1 && snapshot.beacons >= 1, "生态园与星际信标"],
+      [snapshot.supply > 1, "接通风力塔"],
+      [snapshot.homes >= 2, "部署两座居住舱"],
+      [snapshot.gardens >= 1 && snapshot.beacons >= 1, "恢复生态与信号"],
       [
         snapshot.participants >= 3,
-        mode === "practice" ? "三个练习角色协作" : "三个地址共同建造",
+        mode === "practice" ? "三个练习角色协作" : "三个地址共同参与",
       ],
     ].map(([done, text]) => {
       const p = document.createElement("div");
@@ -226,24 +226,24 @@ function render(force = false) {
   );
   $("headline").innerHTML =
     snapshot.phase === 2 || snapshot.restored
-      ? "这座岛，<br>因你们而亮。"
+      ? "CITY ZERO<br>IS ONLINE."
       : snapshot.phase === 3
-        ? "这一次，<br>差一点点。"
-        : "这座岛，<br>等你来点亮。";
+        ? "MISSION FAILED.<br>RUN IT AGAIN."
+        : "THE CITY IS<br>WAITING FOR POWER.";
   $("identity").textContent =
     mode === "practice"
       ? `练习角色 ${role}`
       : actor
         ? (info?.session?.name ?? short(actor))
-        : "正在见证 · 尚未加入";
+        : "正在观看 · 尚未加入";
   $("budget").textContent =
     balance() === null ? "加入后获得 12 额度" : `${balance()} 建造额度`;
   $("provenance").textContent =
     mode === "practice"
-      ? "本机练习，三个角色由本机模拟；不代表真实在线人数。"
+      ? "Local practice uses three simulated roles. They are not online players."
       : !snapshot.block
-        ? "正在读取房间的已确认状态，请稍候。"
-        : `${mode === "local" ? "Anvil 本地链" : "Monad Testnet"} · 已确认版本 ${snapshot.revision} · 区块 ${parseInt(snapshot.block, 16)} · 建造额度不可转让，不是代币。`;
+        ? "Reading confirmed room state. Stand by."
+        : `${mode === "local" ? "ANVIL LOCAL" : "MONAD TESTNET"} · CONFIRMED REV ${snapshot.revision} · BLOCK ${parseInt(snapshot.block, 16)} · BUILD CREDITS ARE NON-TRANSFERABLE AND ARE NOT TOKENS.`;
   $("role").hidden = mode !== "practice";
   $("role").textContent = `切换角色 ${role}`;
   $("tour").hidden = mode !== "practice" || wall;
@@ -258,15 +258,15 @@ function render(force = false) {
   showFeed();
   $("room-explain").textContent =
     mode === "local"
-      ? "本地 Anvil 演练：无需钱包，使用主持机的临时测试账户。最多 9 位建造者，彼此操作同一份合约状态。"
+      ? "Local Anvil rehearsal: no wallet required. Up to nine operators share one contract through disposable host accounts."
       : mode === "monad"
-        ? "这是 Monad Testnet 共建房间。观看不需要钱包，建造需要测试钱包授权与测试 MON 支付 gas。"
-        : "先在本机练习，也可以创建或加入真实测试网房间。";
+        ? "This is a Monad Testnet room. Viewing is wallet-free; building requires wallet approval and test MON for gas."
+        : "Run local practice, or create and join a real testnet room.";
   if (mode === "practice" && practicePersistence)
     try {
       localStorage.setItem(STORAGE, world.export());
     } catch {
-      message("自动保存不可用，请导出练习记录。");
+      message("Autosave is unavailable. Export the coordination trace.");
     }
 }
 function clearChoice() {
@@ -276,16 +276,18 @@ function clearChoice() {
 function selectCell({ x, z }) {
   if (wall || busy || tourRunning) return;
   if (snapshot.phase === 3) {
-    message("本局已超时。主持人可新开一局，大家再次协作。");
+    message("Mission timeout. The host can reset CITY ZERO for another run.");
     return;
   }
   if (mode !== "practice" && !snapshot.block) {
-    message("正在等待房间的已确认状态。");
+    message("Waiting for confirmed room state.");
     return;
   }
   const cell = cellFor(x, z);
   if (cell === 40) {
-    message("核心保留。贴着它组装风塔，再让其他人建起居民舱和生态园。");
+    message(
+      "The Genesis Core is protected. Connect a turbine, then coordinate habitats and the bio-garden.",
+    );
     return;
   }
   const existing = snapshot.kinds[cell];
@@ -298,19 +300,20 @@ function selectCell({ x, z }) {
     : LABELS[selected];
   const own = mode === "practice" ? role : actor;
   $("action-detail").textContent = existing
-    ? `建造者：${short(snapshot.owners[cell])}。只有建造者可拆解，额度全额返还。`
-    : `消耗 ${COST[selected]} 额度。必须连接已有建筑。${mode === "practice" ? "练习立即生效。" : "以链上确认结果为准。"}`;
+    ? `OPERATOR: ${short(snapshot.owners[cell])}. Only the operator can reclaim it; credits are fully returned.`
+    : `COST: ${COST[selected]} CREDITS. Must connect to the existing grid. ${mode === "practice" ? "Practice resolves instantly." : "Confirmed chain state is authoritative."}`;
   $("confirm").textContent = existing
     ? "拆回我的模块"
     : mode === "practice"
       ? "确认组装"
       : mode === "local"
-        ? "提交本地链"
-        : "钱包确认组装";
+        ? "提交到本地链"
+        : "在钱包中确认";
   $("action").hidden = false;
   if (existing && snapshot.owners[cell]?.toLowerCase() !== own?.toLowerCase()) {
     $("confirm").disabled = true;
-    $("action-detail").textContent += " 你可以查看，不能拆走。";
+    $("action-detail").textContent +=
+      " You may inspect it, but only its operator can reclaim it.";
   } else $("confirm").disabled = false;
 }
 function pendingKey() {
@@ -346,8 +349,10 @@ async function poll(fast = false) {
       if (!receipt && fast) return;
       if (receipt) {
         if (receipt.status !== "0x1")
-          message("这笔操作未成功，额度以链上状态为准。");
-        else message("已确认。你的贡献已留在这座岛上。");
+          message(
+            "Action failed. Confirmed onchain credits remain authoritative.",
+          );
+        else message("已确认。你的贡献已写入 CITY ZERO。");
         pending = null;
         busy = false;
         savePending();
@@ -374,12 +379,21 @@ async function poll(fast = false) {
         lastBlock = next.block;
         showFeed();
       } catch {
-        message("地图已同步；共建足迹读取失败，将在下一次刷新重试。");
+        message(
+          "World synchronized. Event trace unavailable; retrying on the next refresh.",
+        );
       }
     }
-    if (pending?.tx) message("操作已广播，等待链上确认；地图暂不提前改变。");
+    if (pending?.tx)
+      message(
+        "Action broadcast. Waiting for confirmation; the city will not change early.",
+      );
   } catch (e) {
-    message("房间同步暂不可用：" + e.message + "。已确认的画面保留。");
+    message(
+      "Room sync unavailable: " +
+        e.message +
+        ". Last confirmed state is preserved.",
+    );
   } finally {
     polling = false;
     queueReceipt();
@@ -390,7 +404,8 @@ function loop() {
   timer = setInterval(poll, 5000 + Math.floor(Math.random() * 2000));
 }
 async function join() {
-  if (snapshot.phase === 3) throw Error("本局已超时，请等待主持人新开一局。");
+  if (snapshot.phase === 3)
+    throw Error("Mission timed out. Wait for the host to reset CITY ZERO.");
   if (mode === "practice") {
     actor = role;
     $("room-dialog").close();
@@ -401,33 +416,36 @@ async function join() {
     actor = info.session.address;
   } else {
     if (!window.ethereum)
-      throw Error("请在钱包浏览器打开邀请链接；普通浏览器仍可观看。");
+      throw Error(
+        "Open the invite in a wallet browser to build. Standard browsers can still spectate.",
+      );
     if (
       (await window.ethereum.request({ method: "eth_chainId", params: [] })) !==
       MONAD.id
     )
-      throw Error("请在钱包切换到 Monad Testnet（10143）");
+      throw Error("Switch your wallet to Monad Testnet (10143)");
     const accounts = await window.ethereum.request({
       method: "eth_requestAccounts",
       params: [],
     });
     actor = accounts[0] ?? "";
-    if (!/^0x[0-9a-f]{40}$/i.test(actor)) throw Error("未授权测试钱包");
+    if (!/^0x[0-9a-f]{40}$/i.test(actor))
+      throw Error("Test wallet is not authorized");
   }
   const joinedGateway = gateway,
     joinedActor = actor;
   const joinedState = await joinedGateway.read(joinedActor);
   if (joinedGateway !== gateway || joinedActor !== actor)
-    throw Error("房间或账户已变化，请重新加入。");
+    throw Error("Room or wallet changed. Join the mission again.");
   snapshot = joinedState;
   clockSample = performance.now();
   render();
   $("room-dialog").close();
-  message("已加入。选一个模块，把你的第一块留在岛上。");
+  message("加入成功。选择一个模块，完成你的第一步。");
 }
 async function submit() {
   if (snapshot.phase === 3) {
-    message("挑战已超时，请主持人新开一局。");
+    message("Mission timeout. Ask the host to start a new run.");
     clearChoice();
     return;
   }
@@ -463,8 +481,8 @@ async function submit() {
       render();
       message(
         snapshot.restored
-          ? "浮岛已复苏！试试拆回风塔，再接通电网。"
-          : "组装完成。切换角色，或邀请大家进入链上房间。",
+          ? "CITY ZERO is online. Reclaim the turbine and restore the grid again."
+          : "Deployment complete. Switch roles or invite a crew into an onchain room.",
       );
     } catch (e) {
       message(e.message);
@@ -475,8 +493,8 @@ async function submit() {
   render();
   message(
     mode === "local"
-      ? "正在提交到本地链…"
-      : "等待钱包确认。只使用测试 MON 支付 gas。",
+      ? "SUBMITTING TO LOCAL CHAIN…"
+      : "WAITING FOR WALLET APPROVAL. TEST MON GAS ONLY.",
   );
   try {
     let tx;
@@ -506,15 +524,17 @@ async function submit() {
     pending = { tx };
     savePending();
     clearChoice();
-    message("已广播，等待确认。");
+    message("已广播，等待链上确认。");
     await poll(true);
     queueReceipt();
   } catch (e) {
     busy = false;
     message(
-      "操作未确认：" +
+      "ACTION NOT CONFIRMED: " +
         e.message +
-        (mode === "monad" ? "。如钱包已广播，请先检查钱包活动再重试。" : ""),
+        (mode === "monad"
+          ? ". If the wallet broadcast it, check wallet activity before retrying."
+          : ""),
     );
     render();
   }
@@ -550,12 +570,13 @@ async function openMonad(address) {
   $("room-dialog").close();
 }
 async function create() {
-  if (!window.ethereum) throw Error("创建房间需要注入钱包的浏览器");
+  if (!window.ethereum)
+    throw Error("Creating a room requires a browser with an injected wallet");
   if (
     (await window.ethereum.request({ method: "eth_chainId", params: [] })) !==
     MONAD.id
   )
-    throw Error("请先在钱包切换到 Monad Testnet");
+    throw Error("Switch your wallet to Monad Testnet first");
   const [from] = await window.ethereum.request({
     method: "eth_requestAccounts",
     params: [],
@@ -564,23 +585,24 @@ async function create() {
     method: "eth_sendTransaction",
     params: [{ from, value: "0x0", data: build.creationBytecode }],
   });
-  roomMessage("部署已广播：" + tx + "。等待确认…");
+  roomMessage("DEPLOYMENT BROADCAST: " + tx + ". WAITING FOR CONFIRMATION…");
   for (let i = 0; i < 60; i++) {
     const r = await window.ethereum.request({
       method: "eth_getTransactionReceipt",
       params: [tx],
     });
     if (r) {
-      if (r.status !== "0x1") throw Error("部署失败，请查看钱包活动");
+      if (r.status !== "0x1")
+        throw Error("Deployment failed. Check wallet activity");
       await openMonad(r.contractAddress);
       $("address").value = r.contractAddress;
-      message("新房间已确认。邀请大家共建同一座岛。");
+      message("ROOM CONFIRMED. Invite the crew into CITY ZERO.");
       return;
     }
     await new Promise((r) => setTimeout(r, 2000));
   }
   throw Error(
-    "部署仍在等待确认。请在钱包交易详情中查看合约地址，确认后手动打开房间。",
+    "Deployment is still pending. Find the contract address in wallet activity, then open the room after confirmation.",
   );
 }
 let settingUp = false;
@@ -588,7 +610,7 @@ function guarded(id, fn) {
   $(id).onclick = async () => {
     if (settingUp) return;
     if (busy) {
-      message("请等待当前交易确认后再操作房间。");
+      message("Wait for the current transaction before changing rooms.");
       return;
     }
     settingUp = true;
@@ -617,7 +639,7 @@ for (let k = 1; k <= 7; k++) {
     for (const c of $("palette").children)
       c.setAttribute("aria-pressed", String(+c.dataset.kind === k));
     clearChoice();
-    message("已选择" + LABELS[k] + "，点一块相邻空地。");
+    message("已选择 " + LABELS[k] + "，请选择相邻地块。");
   };
   $("palette").append(b);
 }
@@ -628,17 +650,17 @@ $("rotate").onclick = () => {
   $("rotate").textContent = `旋转 R · ${rotation * 90}°`;
   if (choice?.type === "build") {
     choice.rotation = rotation;
-    message("方向已更新为 " + rotation * 90 + "°");
+    message("ORIENTATION UPDATED: " + rotation * 90 + "°");
   }
 };
 $("walk").onclick = () => {
   const walking = scene.toggleWalk();
   document.body.classList.toggle("walking", walking);
-  $("walk").textContent = walking ? "返回组装" : "进入岛内";
+  $("walk").textContent = walking ? "返回组装" : "进入城市";
   message(
     walking
-      ? "WASD 行走，空格跳跃，拖动转向；触屏使用方向键。"
-      : "选模块，点地块，确认组装。",
+      ? "WASD to move, Space to jump, drag to look; use the touch pad on mobile."
+      : "Select a module, choose a tile, confirm deployment.",
   );
 };
 for (const b of document.querySelectorAll("[data-move]")) {
@@ -661,11 +683,13 @@ $("role").onclick = () => {
   }
   clearChoice();
   render();
-  message("现在以练习角色 " + role + " 建造。三个角色由本机模拟。");
+  message("练习角色 " + role + " 已启用；三个角色均由本机模拟。");
 };
 $("tour").onclick = async () => {
   if (world.trace.length || tourRunning) {
-    message("演练会用到空白练习场。请先导出记录，再从房间菜单清空练习。");
+    message(
+      "Mission preview needs an empty grid. Export the trace, then reset practice from the room menu.",
+    );
     return;
   }
   tourRunning = true;
@@ -682,10 +706,12 @@ $("tour").onclick = async () => {
       snapshot = world.snapshot();
       feed = world.trace.map((e, i) => ({ ...e, revision: i + 1 }));
       render();
-      message(`练习角色 ${a} 组装了 ${LABELS[kind]}`);
+      message(`练习角色 ${a} 部署了 ${LABELS[kind]}`);
       await new Promise((r) => setTimeout(r, 1000));
     }
-    message("三位练习角色点亮了浮岛。现在可以自己搭建，或创建真实测试网房间。");
+    message(
+      "THREE ROLES BROUGHT CITY ZERO ONLINE. Keep building or create a real testnet room.",
+    );
   } finally {
     tourRunning = false;
     render();
@@ -703,10 +729,10 @@ $("invite").onclick = () => {
 $("copy").onclick = async () => {
   try {
     await navigator.clipboard.writeText($("share-url").value);
-    $("share-note").textContent = "链接已复制。";
+    $("share-note").textContent = "INVITE LINK COPIED.";
   } catch {
     $("share-url").select();
-    $("share-note").textContent = "请长按邀请地址复制。";
+    $("share-note").textContent = "PRESS AND HOLD THE INVITE URL TO COPY.";
   }
 };
 guarded("join", join);
@@ -717,9 +743,11 @@ guarded("restart-room", async () => {
     mode !== "local" ||
     actor?.toLowerCase() !== info.hostAddress?.toLowerCase()
   )
-    throw Error("只有本地演练主持人可以新开一局");
+    throw Error("Only the local rehearsal host can start a new run");
   if (
-    !confirm("新开一局会切换所有人的现场地图，请先导出需要保留的记录。继续？")
+    !confirm(
+      "A new run replaces the live district for every participant. Export anything you need first. Continue?",
+    )
   )
     return;
   await localPost("api/restart", {});
@@ -731,16 +759,16 @@ $("practice").onclick = () => {
 };
 $("reset-practice").onclick = () => {
   if (tourRunning) {
-    roomMessage("请等待共建演练结束后再清空。");
+    roomMessage("Wait for the live mission to finish before resetting.");
     return;
   }
   if (mode !== "practice") {
-    roomMessage("链上房间不能从浏览器清空。");
+    roomMessage("Onchain rooms cannot be cleared from the browser.");
     return;
   }
   if (
     (world.trace.length || !practicePersistence) &&
-    !confirm("清空本机练习？请先导出你要保留的记录。")
+    !confirm("Reset local practice? Export any trace you want to keep first.")
   )
     return;
   practicePersistence = true;
@@ -803,21 +831,23 @@ window.addEventListener("storage", (e) => {
       lastRevision = -1;
       render();
     } catch {
-      message("另一个练习窗口的记录无效，当前画面保留。");
+      message(
+        "Another practice window sent an invalid trace. Current state is preserved.",
+      );
     }
   }
 });
 window.ethereum?.on?.("accountsChanged", () => {
   actor = "";
   if (mode === "monad") {
-    message("钱包账户已变化，请重新加入房间。");
+    message("Wallet account changed. Join the room again.");
     render();
   }
 });
 window.ethereum?.on?.("chainChanged", () => {
   if (mode === "monad") {
     actor = "";
-    message("钱包网络已变化，请检查网络后重新加入。");
+    message("Wallet network changed. Check the network and rejoin.");
     render();
   }
 });
@@ -832,14 +862,14 @@ async function boot() {
     } catch {
       practicePersistence = false;
       message(
-        "练习记录未载入，原存储保留，自动保存暂时停用；可导出当前练习或明确清空后重开。",
+        "Practice trace was not loaded. Original storage is preserved and autosave is disabled; export or explicitly reset to continue.",
       );
     }
     snapshot = world.snapshot();
     scene = mount($("scene"), selectCell);
     render();
     build = await fetch(new URL("./build.json", import.meta.url)).then((r) => {
-      if (!r.ok) throw Error("房间合约资源未加载");
+      if (!r.ok) throw Error("Room contract bundle failed to load");
       return r.json();
     });
     if (query.has("room")) {
@@ -879,7 +909,7 @@ async function boot() {
       } catch (error) {
         if (query.has("local") || mode === "local")
           throw Error(
-            "本地房间服务未运行。请让主持人启动 python -m genesis.live。",
+            "Local room service is offline. Ask the host to run python -m genesis.live.",
           );
       }
     }
@@ -890,7 +920,7 @@ async function boot() {
       $("room-dialog").showModal();
   } catch (e) {
     message(e.message);
-    $("mode").textContent = "房间连接失败";
+    $("mode").textContent = "ROOM CONNECTION FAILED";
     roomMessage(e.message);
     $("room-dialog").showModal();
   }

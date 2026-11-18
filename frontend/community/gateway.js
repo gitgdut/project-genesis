@@ -9,7 +9,7 @@ export const PUBLIC_APP =
 export const word = (n) => BigInt(n).toString(16).padStart(64, "0");
 export function encodeAction(a) {
   if (!Number.isInteger(a.cell) || a.cell < 0 || a.cell > 80)
-    throw Error("无效地块");
+    throw Error("Invalid tile");
   if (a.type === "remove") return "0xf06730e0" + word(a.cell);
   if (
     a.type !== "build" ||
@@ -20,7 +20,7 @@ export function encodeAction(a) {
     a.rotation < 0 ||
     a.rotation > 3
   )
-    throw Error("无效建造操作");
+    throw Error("Invalid build action");
   return "0x50548d40" + word(a.cell) + word(a.kind) + word(a.rotation);
 }
 export function words(raw, length) {
@@ -29,13 +29,14 @@ export function words(raw, length) {
     !/^0x[0-9a-f]+$/i.test(raw) ||
     raw.length !== 2 + length * 64
   )
-    throw Error("合约响应格式不符");
+    throw Error("Unexpected contract response");
   return Array.from({ length }, (_, i) =>
     BigInt("0x" + raw.slice(2 + i * 64, 66 + i * 64)),
   );
 }
 function integer(n) {
-  if (n > BigInt(Number.MAX_SAFE_INTEGER)) throw Error("合约数值超出支持范围");
+  if (n > BigInt(Number.MAX_SAFE_INTEGER))
+    throw Error("Contract value exceeds the supported range");
   return Number(n);
 }
 export class CommunityGateway {
@@ -47,9 +48,9 @@ export class CommunityGateway {
   }
   async check() {
     if (!/^0x[0-9a-f]{40}$/i.test(this.contract))
-      throw Error("房间地址格式不正确");
+      throw Error("Invalid room address");
     if ((await this.request("eth_chainId", [])) !== this.chainId)
-      throw Error("连接的网络不符");
+      throw Error("Connected to the wrong network");
     const raw = await this.request("eth_getCode", [this.contract, "latest"]);
     if (
       !/^0x(?:[a-f0-9]{2})+$/i.test(raw) ||
@@ -57,7 +58,7 @@ export class CommunityGateway {
         Uint8Array.from(raw.slice(2).match(/../g), (v) => parseInt(v, 16)),
       ) !== this.expectedHash
     )
-      throw Error("房间合约不是本版本的共建合约");
+      throw Error("This room does not match the current CITY ZERO contract");
   }
   async read(actor = "") {
     const block = await this.request("eth_blockNumber", []),
@@ -75,7 +76,7 @@ export class CommunityGateway {
           : Promise.resolve(null),
       ]);
     const roundWords = words(round, 3);
-    if (roundWords[0] > 3n) throw Error("挑战状态无效");
+    if (roundWords[0] > 3n) throw Error("Invalid mission state");
     const b = words(raw, 243),
       p = words(status, 87),
       kinds = b.slice(0, 81).map(integer),
@@ -87,7 +88,7 @@ export class CommunityGateway {
       p.slice(0, 81).some((v) => v > 1n) ||
       p[86] > 1n
     )
-      throw Error("房间状态无效");
+      throw Error("Invalid room state");
     const owners = b
       .slice(162)
       .map((v) => "0x" + v.toString(16).padStart(40, "0"));
@@ -113,7 +114,7 @@ export class CommunityGateway {
   }
   async submit(actor, action) {
     if ((await this.request("eth_chainId", [])) !== this.chainId)
-      throw Error("钱包网络已改变，请切回房间网络");
+      throw Error("Wallet network changed; switch back to the room network");
     return this.request("eth_sendTransaction", [
       {
         from: actor,
@@ -124,10 +125,11 @@ export class CommunityGateway {
     ]);
   }
   async receipt(hash) {
-    if (!/^0x[0-9a-f]{64}$/i.test(hash)) throw Error("交易哈希无效");
+    if (!/^0x[0-9a-f]{64}$/i.test(hash))
+      throw Error("Invalid transaction hash");
     const r = await this.request("eth_getTransactionReceipt", [hash]);
     if (r && r.to?.toLowerCase() !== this.contract.toLowerCase())
-      throw Error("交易目标与房间不符");
+      throw Error("Transaction target does not match this room");
     return r;
   }
   async events(from, to) {
@@ -152,7 +154,7 @@ export class CommunityGateway {
           l.topics.length !== 3 ||
           !/^0x[0-9a-f]{64}$/i.test(l.transactionHash)
         )
-          throw Error("事件格式无效");
+          throw Error("Invalid event payload");
         return {
           type: isBuild ? "build" : "remove",
           actor: "0x" + l.topics[1].slice(-40),
@@ -171,7 +173,7 @@ export async function publicRpc(method, params) {
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
     signal: AbortSignal.timeout(12000),
   });
-  if (!r.ok) throw Error("测试网读取失败，请重试");
+  if (!r.ok) throw Error("Testnet read failed; try again");
   const data = await r.json();
   if (data.error) throw Error(data.error.message);
   return data.result;
@@ -188,6 +190,6 @@ export async function localPost(path, body, id, instance) {
     signal: AbortSignal.timeout(15000),
   });
   const data = await r.json();
-  if (!r.ok) throw Error(data.error ?? "本地房间请求失败");
+  if (!r.ok) throw Error(data.error ?? "Local room request failed");
   return data;
 }

@@ -1,98 +1,134 @@
-# GENESIS — 90 秒，一起点亮浮岛
+# GENESIS LIVE
 
-**观众扫码，共同救活一座链上浮岛。**
+> **The crowd is the controller. The contract is the game engine.**
 
-[产品入口](https://mia03ther.github.io/project-genesis/) · [无计时练习](https://mia03ther.github.io/project-genesis/play.html) · [产品与边界](docs/RELAUNCH.md)
+[Launch the experience](https://mia03ther.github.io/project-genesis/) · [Open CITY ZERO](https://mia03ther.github.io/project-genesis/play.html) · [Technical boundaries](docs/RELAUNCH.md)
 
-每人只有 12 建造额度。第一块落下，90 秒倒计时开始。有人接通风塔，有人建起居民舱，至少三个地址共同安置生态园和信标。合约判定地块、额度、拆解权限、供电、超时和完成目标；手机和大屏读取同一份已确认状态。完成后可继续自由组装，超时后地图只读，主持人可再开一局。
+**一句话定位：** GENESIS LIVE 是实时链上群众互动引擎。观众不再观看 Demo，而是扫码成为同一个可编程世界的玩家；合约执行规则，大屏呈现所有人的已确认行动。
 
-这是短局协作游戏原型，不发行代币、不涉及真实资产。商业价值和现场观众体验尚待验证，测试通过不代表能保证获奖。
+**参赛体验：** CITY ZERO 是第一个旗舰任务。全场需要在 90 秒内分工恢复一座断电浮城，单人额度不足以独立通关。最终留下的不是一张截图，而是一份可验证的 **Proof of Coordination**。
 
-## 三种模式
+GENESIS LIVE is an onchain live-experience engine. It turns an audience into players of one shared, programmable world. Instead of watching a product demo, people scan a code, join from their phones, and change the same state together while a public screen shows every confirmed contribution.
 
-- **本机练习**：不计时、无需钱包，A/B/C 是本机模拟角色，不是假装在线的玩家。记录可导出。
-- **本地链现场演练**：电脑运行服务，同一可信局域网的手机共建。真实私有 Anvil 合约，网络 31337，最多九个不同临时账户，不需要手机钱包。
-- **Monad Testnet 房间**：部署或加入同一个公开测试网合约。观看无需钱包，建造需要自己的测试钱包和测试 MON。公开钱包签名、实际手机和跨设备公网彩排尚未执行；本地 Anvil 成功不等于公开 Monad 验证。
+The first flagship experience is **CITY ZERO**: a neon floating district has lost power. The first confirmed action starts a 90-second mission. At least three participants must coordinate a generator, two habitats, a bio-garden, and a signal beacon. No single player has enough build allowance to complete the mission alone.
 
-## 先试玩
+The smart contract is not decorative storage. It is the authoritative game engine: it enforces the map, build allowance, ownership, power routing, deadline, and win condition. The result is a replayable **Proof of Coordination**.
 
-从源代码仓库根目录启动纯静态练习：
+## Why this belongs on Monad
+
+Most blockchain products turn one wallet into one user interface. GENESIS turns a room into a live network.
+
+- **Shared truth:** phones and the projector read the same confirmed world.
+- **Composable rules:** the contract decides what can be built, powered, removed, and won.
+- **Visible consequences:** every confirmed action changes a public 3D scene.
+- **Portable participation:** a room is a contract address, not a private game-server database.
+- **High-frequency potential:** fast confirmations make blockchain actions part of the play loop instead of a post-game receipt.
+
+CITY ZERO is one scenario. The same engine can later support festival activations, community world-building, live competitions, public art, governance experiments, and human-versus-agent coordination trials.
+
+## The 90-second demo
+
+1. Put `play.html?wall=1` on the main screen.
+2. Audience members scan the room QR code and join from their phones.
+3. The first confirmed build starts the clock.
+4. Players divide the mission because one allowance cannot fund every objective.
+5. The contract validates each action and the city lights up in real time.
+6. Success unlocks free-build mode; timeout freezes the district as a final record.
+
+The visual direction is an original neon-coastal techno-thriller: deep violet nights, electric magenta, coral highlights, cinematic mission copy, and Monad-purple energy. It does not use Grand Theft Auto names, characters, logos, maps, code, or artwork.
+
+## Three execution modes
+
+- **Practice:** static, untimed, and wallet-free. Local roles A/B/C teach the rules. They are simulated roles, not fake online users.
+- **Anvil event rehearsal:** one laptop hosts a private local chain for up to nine phone sessions on a trusted LAN. Disposable accounts and synthetic funds only; no wallet installation is required.
+- **Monad Testnet room:** a wallet deploys or joins a public room contract on chain ID `10143`. Viewing is wallet-free; building requires a test wallet and test MON.
+
+The Anvil multiplayer path has been executed end to end. Public Monad wallet signing and physical iPhone testing are not yet claimed as verified.
+
+## Run the public practice build
 
 ```powershell
+git clone --branch codex/genesis-relaunch https://github.com/mia03ther/project-genesis.git genesis-live
+Set-Location .\genesis-live
 py -3.12 -m http.server 8000 --bind 127.0.0.1 --directory frontend
-```
-
-另开 PowerShell：
-
-```powershell
 Start-Process 'http://127.0.0.1:8000/'
 ```
 
-选模块 → 点相邻空地 → 确认组装。点自己的建筑可拆回额度，R 旋转、1–7 选模块。可进入岛内用 WASD/空格/拖动探索；手机有方向键。房间菜单提供昵称加入、创建/打开测试网房间。邀请面板提供二维码与现场大屏入口。
+Select a module, choose an adjacent tile, and confirm. Use `R` to rotate, `1`–`7` to choose modules, and WASD/Space to explore the district.
 
-## Windows PowerShell：多人演练
+## Run a local multiplayer room on Windows
 
-需要 Python 3.12 和 Foundry 的 anvil/forge（使用 Solc 0.8.29）。从 checkout 运行：
+Requirements: Python 3.12 and Foundry (`anvil`, `forge`, Solc 0.8.29).
 
 ```powershell
-git clone --branch codex/genesis-relaunch https://github.com/mia03ther/project-genesis.git genesis-demo
-Set-Location .\genesis-demo
+git clone --branch codex/genesis-relaunch https://github.com/mia03ther/project-genesis.git genesis-live
+Set-Location .\genesis-live
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e '.[dev]'
 $env:Path = "$env:USERPROFILE\.foundry\bin;$env:Path"
 .\.venv\Scripts\python.exe -m genesis.live --host 0.0.0.0 --port 8030
 ```
 
-浏览器打开 `http://127.0.0.1:8030/`，进入浮岛并填写昵称。第一位加入者为本地演练主持人，可在房间菜单新开挑战。手机需与电脑处于同一局域网。服务会尝试生成电脑的局域网邀请地址；如选错 VPN/网卡，可显式指定实际 IPv4：
+Open `http://127.0.0.1:8030/` on the host. Phones must use the laptop's LAN address, not `localhost`. If automatic address selection chooses a VPN or the wrong adapter, provide the actual IPv4 address:
 
 ```powershell
 .\.venv\Scripts\python.exe -m genesis.live --host 0.0.0.0 --port 8030 --advertise-host 192.168.1.23
 ```
 
-请替换示例 IP。也可从 `http://电脑局域网IP:8030/play.html?local=1` 打开后再分享。默认只绑定 `127.0.0.1` 时仅本机可访问，不能让手机扫描 localhost。没有自动修改 Windows 防火墙；路由器客户端隔离也可能阻止连接。
+Open `/play.html?wall=1` on the projector. The first browser session is the local host and can start a new round. The service starts and owns a loopback-only Anvil process, deploys the contract, assigns disposable local accounts, and shuts the node down on `Ctrl+C`.
 
-大屏打开同一服务的 `/play.html?wall=1`。本地服务只控制它启动的私有 Anvil 和临时账户，不可配置公共签名 RPC。Ctrl+C 会关闭自建节点；服务重启是新临时世界，请先导出记录。该标准库 HTTP 服务只供可信本机/局域网演练，不直接暴露到公网。
+This development server is for a trusted local network. It does not configure Windows Firewall, bypass router client isolation, provide TLS, or form a hostile-code security boundary. Do not expose it directly to the public internet.
 
-## 公开测试网
+## Monad Testnet rehearsal
 
-在注入钱包的浏览器切换到 Monad Testnet（10143），使用专门的测试钱包及测试 MON。点击“创建测试网房间”，确认部署后分享房间；其他人打开邀请、连接自己的钱包并确认建造交易。客户端校验网络和运行时代码，广播后等待收据，不提前显示成功。它不是免 gas 方案，尚未实测公开链确认时间或吞吐量。
+Use a dedicated test wallet and test MON only. From the public site, choose **Create Testnet Room**, approve deployment, and wait for runtime-code verification. Share the room QR code; each builder signs their own actions. The frontend waits for receipts before changing the authoritative scene.
 
-合约源码：[GenesisCommunity.sol](contracts/GenesisCommunity.sol)。改变合约后，客户端与部署版本必须一致：
+The current testnet flow is not gasless. Never place wallet keys in the website, repository, logs, or screenshots. Anvil success does not prove Monad latency, wallet compatibility, or mobile reliability; run the checklist in [DEPLOY.md](DEPLOY.md) before a live event.
+
+Contract source: [GenesisCommunity.sol](contracts/GenesisCommunity.sol). After a contract change, rebuild and export the pinned bytecode:
 
 ```powershell
 forge build --root contracts --use 0.8.29
 .\.venv\Scripts\python.exe tools/export_community.py
 ```
 
-额度是不可转让计数，不是资产。每地址额度不等于每人额度，尚不解决公开社区的女巫和长期治理问题。
+## Architecture
 
-## 验证
+- `contracts/GenesisCommunity.sol` — authoritative grid, ownership, allowance, power routing, clock, and win state.
+- `genesis/live.py` — owned Anvil lifecycle, disposable sessions, restricted action gateway, and static hosting.
+- `frontend/community/domain.js` — deterministic practice model and scene adapter.
+- `frontend/community/gateway.js` — strict ABI, chain/runtime checks, receipt tracking, logs, and transports.
+- `frontend/community/app.js` — rooms, confirmations, QR invitations, recovery, projector mode, and feedback.
+- `frontend/sandbox/scene.js` — original interactive 3D floating-district renderer.
 
-开发检查使用 Node（本次 24.19.0）、Foundry 和 Python。网页无构建步骤，Python 运行时无第三方依赖。若环境未安装可选的 mypy：`python -m pip install mypy`。
+The original deterministic civilization simulation, SQLite persistence, CLI, and Web3 learning harness remain intact. Their documentation is preserved in [docs/LEGACY_SIMULATION.md](docs/LEGACY_SIMULATION.md), and the earlier UI remains at `/legacy.html`.
+
+## Verification
 
 ```powershell
 $env:Path = "$env:USERPROFILE\.foundry\bin;$env:Path"
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m mypy --strict genesis main.py
+.\.venv\Scripts\python.exe -m mypy --strict genesis main.py tools/export_community.py
 forge test --root contracts --use 0.8.29 -vv
 node --test frontend/community/verify.mjs frontend/sandbox/verify.mjs frontend/studio/verify.mjs
 $env:GENESIS_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 node frontend/community/e2e.mjs
-node frontend/verify_engine.mjs
-node frontend/verify_epochs.mjs
-node frontend/rehearse_demo.mjs
 ```
 
-HTTP 端到端检查会启动并关闭私有 Anvil、三个独立会话和临时服务，实际提交交易验证权限、抢地、幂等、协作目标、供电与主持人重开，输出 [机器报告](docs/examples/relaunch-e2e.report.json)。这不等于浏览器或实际手机测试。
+Recorded results for this relaunch:
 
-[实际验证记录](docs/validation/RELAUNCH_CHECKS.md) · [部署说明](DEPLOY.md) · [获奖项目研究](docs/BLITZ_WINNER_STUDY.md)
+- Python: **638 passed**
+- Browser-domain Node tests: **21 passed**
+- Solidity: **13 passed**
+- Strict mypy: **26 source files clean**
+- Three-session HTTP → gateway → Anvil experiment: passed, including shared state, ownership rejection, idempotency, power loss/recovery, timed completion, host-only reset, and stale-round rejection
 
-## 保留的基础设施
+Evidence: [machine-readable E2E report](docs/examples/relaunch-e2e.report.json) · [executed checks](docs/validation/RELAUNCH_CHECKS.md) · [deployment guide](DEPLOY.md)
 
-原 Python 文明引擎、CLI、SQLite 存档、Web3 学习 harness 和原有测试仍保留；画面不替代权威状态。
+Automated browser rendering failed before interaction because the available computer-use runtime could not initialize its kernel assets. Therefore this repository does not claim a completed visual, Mobile Safari, or public Monad rehearsal. Those checks remain mandatory before the event.
 
-- [文明模拟与 CLI 文档](docs/LEGACY_SIMULATION.md)
-- [Harness 架构](docs/HARNESS_ARCHITECTURE.md)、[经济规则](docs/ECONOMY.md)、[存档格式](docs/SAVE_FORMAT.md)
-- 旧网页 `/legacy.html`；早期个人浮岛 `/sandbox.html`；观测站 `/world.html`
+## Scope and provenance
 
-Three.js 和本地二维码编码器的 MIT 来源与许可证见 [vendor](frontend/vendor/README.md)。未复制红魔社区的代码、模型或贴图。未引入实时 AI、NFT、真实支付、Docker 或新数据库。
+GENESIS does not issue a token, NFT, or real asset. Build allowance is a non-transferable game counter. Per-address limits are not proof of unique humans and do not solve Sybil resistance or long-term governance.
+
+Three.js and the local MIT-licensed QR encoder are vendored with provenance in [frontend/vendor/README.md](frontend/vendor/README.md). No third-party game code, models, textures, characters, maps, or branded assets are copied. No paid AI API, Docker, Redis, or new database is required.

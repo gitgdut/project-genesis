@@ -18,5 +18,5 @@ try {
   });
 } catch {
   document.getElementById("preview-note").textContent =
-    "浮岛预览需要 WebGL 2。";
+    "CITY ZERO requires WebGL 2 for the live preview.";
 }

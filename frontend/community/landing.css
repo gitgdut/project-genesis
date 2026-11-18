@@ -32,6 +32,12 @@ body::after {
   );
   mix-blend-mode: soft-light;
 }
+.hero {
+  position: relative;
+  height: 56.25vw;
+  min-height: 720px;
+  overflow: hidden;
+}
 a {
   color: inherit;
   text-decoration: none;
@@ -44,9 +50,9 @@ a {
   position: absolute;
   inset: 0 0 auto 0;
   width: 100%;
-  height: 780px;
-  object-fit: cover;
-  object-position: center top;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
   filter: saturate(1.08) contrast(1.04);
   user-select: none;
   pointer-events: none;
@@ -54,7 +60,7 @@ a {
 .veil {
   position: absolute;
   inset: 0;
-  height: 740px;
+  height: 100%;
   pointer-events: none;
   background:
     linear-gradient(90deg, #090512 0%, #090512ed 29%, transparent 66%),
@@ -195,6 +201,10 @@ footer div {
   color: #ae92c6;
 }
 @media (max-width: 760px) {
+  .hero {
+    height: auto;
+    min-height: 760px;
+  }
   header {
     padding: 22px 20px;
   }
@@ -206,7 +216,7 @@ footer div {
     font-size: 10px;
   }
   main {
-    margin: 32px 20px 285px;
+    margin: 240px 20px 80px;
     max-width: 350px;
   }
   h1 {
@@ -230,12 +240,12 @@ footer div {
     letter-spacing: 2px;
   }
   .key-art {
-    height: 720px;
-    object-position: 66% top;
-    opacity: 0.86;
+    height: auto;
+    object-position: center top;
+    opacity: 1;
   }
   .veil {
-    height: 600px;
+    height: 100%;
     background:
       linear-gradient(180deg, #090512c4 0%, #0905121a 50%, #090512 100%),
       linear-gradient(90deg, #090512dc 0%, transparent 85%);

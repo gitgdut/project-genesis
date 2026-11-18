@@ -21,6 +21,7 @@ const $ = (id) => document.getElementById(id),
   query = new URLSearchParams(location.search),
   wall = query.get("wall") === "1";
 const STORAGE = "genesis.community.practice.v1",
+  BRIEFING = "genesis.community.briefing.v1",
   short = (s) => (s && s.length > 16 ? s.slice(0, 6) + "…" + s.slice(-4) : s);
 let mode = "practice",
   world = new Practice(),
@@ -352,11 +353,23 @@ async function poll(fast = false) {
       if (g !== gateway) return;
       if (!receipt && fast) return;
       if (receipt) {
-        if (receipt.status !== "0x1")
+        const elapsed = pending.startedAt
+            ? Math.max(0, (Date.now() - pending.startedAt) / 1000)
+            : null,
+          network = mode === "monad" ? "MONAD" : "ANVIL LOCAL";
+        if (receipt.status !== "0x1") {
+          $("latency").textContent = network + " · FAILED";
           message(
             "Action failed. Confirmed onchain credits remain authoritative.",
           );
-        else message("已确认。你的贡献已写入 CITY ZERO。");
+        } else {
+          $("latency").textContent =
+            network +
+            (elapsed === null ? " · CONFIRMED" : ` · ${elapsed.toFixed(1)}S`);
+          message(
+            `${network} 已确认${elapsed === null ? "" : ` · ${elapsed.toFixed(1)} 秒`}。城市状态已更新。`,
+          );
+        }
         pending = null;
         busy = false;
         savePending();
@@ -525,7 +538,7 @@ async function submit() {
         MONAD.id,
         build.runtimeHash,
       ).submit(actor, action);
-    pending = { tx };
+    pending = { tx, startedAt: Date.now() };
     savePending();
     clearChoice();
     message("已广播，等待链上确认。");
@@ -720,6 +733,28 @@ $("tour").onclick = async () => {
     tourRunning = false;
     render();
   }
+};
+function rememberBriefing() {
+  try {
+    localStorage.setItem(BRIEFING, "seen");
+  } catch {
+    /* the briefing remains dismissible when storage is blocked */
+  }
+}
+function closeBriefing() {
+  rememberBriefing();
+  $("briefing-dialog").close();
+}
+$("help").onclick = () => $("briefing-dialog").showModal();
+$("briefing-close").onclick = closeBriefing;
+$("briefing-start").onclick = () => {
+  closeBriefing();
+  if (mode === "practice") $("tour").click();
+  else message("当前是现场房间。选择模块，点击相邻空地并确认即可参与。");
+};
+$("briefing-live").onclick = () => {
+  closeBriefing();
+  $("room-dialog").showModal();
 };
 $("menu").onclick = () => {
   $("room-dialog").showModal();
@@ -920,8 +955,24 @@ async function boot() {
     invitations();
     render();
     if (wall) $("wall-invite").hidden = false;
-    if (query.has("create") || (mode === "local" && !actor && !wall))
-      $("room-dialog").showModal();
+    const needsRoom =
+        query.has("create") || (mode === "local" && !actor && !wall),
+      briefingSeen = (() => {
+        try {
+          return localStorage.getItem(BRIEFING) === "seen";
+        } catch {
+          return false;
+        }
+      })();
+    if (
+      !wall &&
+      !needsRoom &&
+      mode === "practice" &&
+      !query.has("room") &&
+      !briefingSeen
+    )
+      $("briefing-dialog").showModal();
+    else if (needsRoom) $("room-dialog").showModal();
   } catch (e) {
     message(e.message);
     $("mode").textContent = "ROOM CONNECTION FAILED";

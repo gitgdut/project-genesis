@@ -28,6 +28,21 @@ def test_relaunch_dom_and_resource_wiring() -> None:
     referenced = set(re.findall(r'''\$\(['"]([^'"]+)['"]\)''', app))
     assert len(referenced) > 30
     assert referenced <= play.ids
+    assert {
+        "briefing-dialog",
+        "briefing-start",
+        "briefing-live",
+        "briefing-close",
+        "help",
+        "latency",
+    } <= play.ids
+    assert "90 秒内恢复四个生命系统" in (root / "play.html").read_text(
+        encoding="utf-8"
+    )
+    assert "startedAt: Date.now()" in app
+    landing = (root / "community/landing.css").read_text(encoding="utf-8")
+    assert ".hero" in landing and "height: 56.25vw" in landing
+    assert "object-fit: contain" in landing
     for name in ("index.html", "play.html", "legacy.html"):
         page = Resources()
         page.feed((root / name).read_text(encoding="utf-8-sig"))

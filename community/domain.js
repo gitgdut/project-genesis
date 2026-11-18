@@ -78,6 +78,7 @@ export function power(kinds, participants) {
 export function sceneView(snapshot) {
   const colors = ["#b99aff", "#9fb9ad", "#d7b88c"];
   return {
+    restored: Boolean(snapshot.restored),
     modules: snapshot.kinds.flatMap((k, i) => {
       if (!k) return [];
       const owner = snapshot.owners[i] ?? "",

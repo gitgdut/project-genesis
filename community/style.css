@@ -88,6 +88,21 @@ label {
     #8e4cff16
   );
   box-shadow: inset 0 0 150px #050208;
+  transition:
+    background 900ms ease,
+    box-shadow 900ms ease;
+}
+.game.restored::after {
+  background:
+    radial-gradient(circle at 50% 48%, #d16cff42, transparent 34%),
+    linear-gradient(180deg, #ff8cc41f, transparent 30%, #ff9b6c12);
+  box-shadow: inset 0 0 70px #6f2c9138;
+}
+.game.restored #headline {
+  color: #fff;
+  text-shadow:
+    0 0 18px #ff73bd,
+    0 0 52px #9f5dff;
 }
 #scene {
   position: fixed;

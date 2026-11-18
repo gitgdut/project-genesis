@@ -178,6 +178,10 @@ function showFeed() {
   }
 }
 function render(force = false) {
+  document.body.classList.toggle(
+    "restored",
+    Boolean(snapshot.phase === 2 || snapshot.restored),
+  );
   $("objective-copy").textContent =
     mode === "practice"
       ? "先用无计时练习掌握操作，再发起 90 秒现场任务。"
@@ -226,10 +230,10 @@ function render(force = false) {
   );
   $("headline").innerHTML =
     snapshot.phase === 2 || snapshot.restored
-      ? "CITY ZERO<br>IS ONLINE."
+      ? "CITY ZERO<br>LIVES."
       : snapshot.phase === 3
         ? "MISSION FAILED.<br>RUN IT AGAIN."
-        : "THE CITY IS<br>WAITING FOR POWER.";
+        : "CITY ZERO IS<br>LOSING POWER.";
   $("identity").textContent =
     mode === "practice"
       ? `练习角色 ${role}`

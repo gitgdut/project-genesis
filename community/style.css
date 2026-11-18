@@ -269,11 +269,7 @@ h1 {
   font-weight: 500;
 }
 .activity {
-  position: fixed;
-  right: 28px;
-  bottom: 205px;
-  width: 200px;
-  pointer-events: none;
+  display: none;
 }
 .activity ol {
   padding: 0;
@@ -364,6 +360,14 @@ footer {
   font-size: 9px;
   color: #9e8eaf;
   margin-top: 10px;
+}
+#rotate,
+#download,
+#provenance {
+  display: none;
+}
+.meters > div:last-child {
+  display: none;
 }
 .action-sheet {
   position: fixed;
@@ -457,7 +461,7 @@ dialog summary {
   cursor: pointer;
 }
 .briefing {
-  width: 680px;
+  width: 520px;
   padding: 34px;
   background:
     radial-gradient(circle at 100% 0%, #ff4f9224, transparent 34%),
@@ -466,15 +470,46 @@ dialog summary {
   box-shadow: 0 30px 90px #050208cc;
 }
 .briefing h2 {
-  margin-bottom: 8px;
-  font-size: 34px;
+  margin: 0 0 8px;
+  font-size: 38px;
   font-weight: 850;
   letter-spacing: -1px;
 }
 .briefing .briefing-lead {
-  max-width: 540px;
+  margin: 0;
   color: #e5d8ec;
   font-size: 14px;
+}
+.briefing-count {
+  margin: 18px 0 -4px;
+  color: transparent;
+  background: linear-gradient(120deg, #fff, #ff6eb5 46%, #a769ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-size: 128px;
+  font-weight: 950;
+  line-height: 0.86;
+  letter-spacing: -10px;
+}
+.briefing-count span {
+  margin-left: 12px;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.briefing-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 28px 0 14px;
+  padding: 15px 18px;
+  background: #0d0717a8;
+  border: 1px solid #d16bff2e;
+  font-size: 13px;
+}
+.briefing-flow i {
+  color: #ff6eb5;
+  font-style: normal;
 }
 .briefing-steps {
   display: grid;
@@ -508,18 +543,14 @@ dialog summary {
   line-height: 1.7;
 }
 .mission-rule {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  display: block;
+  margin: 0;
   padding: 14px 16px;
+  text-align: center;
   color: #b7a4c4;
   background: #ff4f920d;
   border-left: 2px solid #ff5fa9;
   font-size: 10px;
-}
-.mission-rule b {
-  color: #f5eafa;
-  font-weight: 600;
 }
 .briefing-actions {
   display: flex;
@@ -614,6 +645,9 @@ dialog summary {
   .briefing h2 {
     font-size: 27px;
   }
+  .briefing-count {
+    font-size: 96px;
+  }
   .briefing-steps {
     grid-template-columns: 1fr;
   }
@@ -625,7 +659,6 @@ dialog summary {
   .briefing-steps li > b {
     margin: 0;
   }
-  .mission-rule,
   .briefing-actions {
     flex-direction: column;
   }

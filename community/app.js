@@ -21,7 +21,7 @@ const $ = (id) => document.getElementById(id),
   query = new URLSearchParams(location.search),
   wall = query.get("wall") === "1";
 const STORAGE = "genesis.community.practice.v1",
-  BRIEFING = "genesis.community.briefing.v1",
+  BRIEFING = "genesis.community.briefing.v2",
   short = (s) => (s && s.length > 16 ? s.slice(0, 6) + "…" + s.slice(-4) : s);
 let mode = "practice",
   world = new Practice(),
@@ -185,14 +185,14 @@ function render(force = false) {
   );
   $("objective-copy").textContent =
     mode === "practice"
-      ? "先用无计时练习掌握操作，再发起 90 秒现场任务。"
+      ? "选模块，接到核心旁边。"
       : snapshot.phase === 2
-        ? "CITY ZERO 已上线。自由建造已解锁。"
+        ? "城市已复苏。"
         : snapshot.phase === 3
-          ? "任务已超时。主持人可以重开一局。"
+          ? "任务失败。重新开始。"
           : snapshot.phase === 0
-            ? "先召集队友；第一笔确认后开始 90 秒倒计时。"
-            : "分工恢复风力塔、居住舱、生态园与信标。";
+            ? "等人齐。第一笔确认后开始倒计时。"
+            : "完成下面四项任务。";
   if (!clockTimer) clockTimer = setInterval(tickClock, 250);
   tickClock();
   $("restart-room").hidden =
@@ -305,8 +305,8 @@ function selectCell({ x, z }) {
     : LABELS[selected];
   const own = mode === "practice" ? role : actor;
   $("action-detail").textContent = existing
-    ? `OPERATOR: ${short(snapshot.owners[cell])}. Only the operator can reclaim it; credits are fully returned.`
-    : `COST: ${COST[selected]} CREDITS. Must connect to the existing grid. ${mode === "practice" ? "Practice resolves instantly." : "Confirmed chain state is authoritative."}`;
+    ? `建造者 ${short(snapshot.owners[cell])} · 拆除后退回额度`
+    : `${COST[selected]} 额度 · 必须连接已有建筑`;
   $("confirm").textContent = existing
     ? "拆回我的模块"
     : mode === "practice"
@@ -646,7 +646,7 @@ function guarded(id, fn) {
     }
   };
 }
-for (let k = 1; k <= 7; k++) {
+for (const k of [2, 3, 4, 7, 1]) {
   const b = document.createElement("button");
   b.dataset.kind = k;
   b.innerHTML = `${k} · ${LABELS[k]}<small>${COST[k]} 建造额度</small>`;
@@ -859,7 +859,8 @@ document.addEventListener("keydown", (e) => {
   )
     return;
   if (e.key.toLowerCase() === "r") $("rotate").click();
-  if (+e.key >= 1 && +e.key <= 7) $("palette").children[+e.key - 1].click();
+  if (+e.key >= 1 && +e.key <= 7)
+    document.querySelector(`[data-kind="${+e.key}"]`)?.click();
   if (e.key === "Escape") clearChoice();
 });
 window.addEventListener("storage", (e) => {

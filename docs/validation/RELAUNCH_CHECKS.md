@@ -27,7 +27,7 @@ node --check frontend/sandbox/scene.js
 git diff --check
 ```
 
-- Python: **638 passed in 28.29s**, no skips. This includes the original
+- Python: **638 passed in 33.29s**, no skips. This includes the original
   simulation/harness checks and three new relay/static-wiring checks.
 - Strict mypy: **26 source files clean**.
 - Solidity: **13 passed**, including the 256-case refund fuzz test. These
@@ -70,10 +70,11 @@ of Monad throughput, cost or finality.
 
 The built-in browser automation call failed before creating a controllable
 preview: `failed to write kernel assets` / missing path. The independent
-Windows computer-use runtime returned the same startup failure. Microsoft
-Edge headless subsequently rendered the first-run briefing at **390×844**
-and the projector view at **1440×900** from a local HTTP server; both produced
-non-empty screenshots and the WebGL city appeared in the projector render.
+Windows computer-use runtime returned the same startup failure. The local
+Playwright Chromium headless binary subsequently rendered the landing and game
+views at **390×844** and the landing at **1440×900** from a local HTTP server;
+all produced non-empty screenshots and the WebGL city appeared in the mobile
+game render.
 This is a rendering smoke check only: no browser input or real mobile hardware
 was exercised, and no Mobile Safari compatibility claim is made.
 

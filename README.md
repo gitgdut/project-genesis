@@ -58,6 +58,8 @@ Choose a crew and use its large contribution button. The deterministic practice 
 
 The competition positioning, exact stage flow, measurement rules, and remaining
 Monad validation work are documented in [docs/MONAD_BLITZ_DEMO.md](docs/MONAD_BLITZ_DEMO.md).
+The visual system and non-copying reference study are documented in
+[docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 
 ## Run a local multiplayer room on Windows
 

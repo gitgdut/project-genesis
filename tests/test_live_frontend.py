@@ -42,8 +42,11 @@ def test_relaunch_dom_and_resource_wiring() -> None:
     assert "startedAt: Date.now()" in app
     assert "for (const k of [2, 3, 4, 7, 1])" in app
     landing = (root / "community/landing.css").read_text(encoding="utf-8")
-    assert ".hero" in landing and "height: 56.25vw" in landing
-    assert "object-fit: contain" in landing
+    assert ".hero" in landing and "min-height: 100dvh" in landing
+    assert "--monad: #836ef9" in landing and "--signal: #f0ff66" in landing
+    design = (root.parent / "docs" / "DESIGN_SYSTEM.md").read_text(encoding="utf-8")
+    assert "live broadcast control system" in design
+    assert "object-fit: cover" in landing
     for name in ("index.html", "play.html", "legacy.html"):
         page = Resources()
         page.feed((root / name).read_text(encoding="utf-8-sig"))

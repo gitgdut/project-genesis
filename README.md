@@ -10,7 +10,7 @@
 
 GENESIS LIVE is an onchain live-experience engine. It turns an audience into players of one shared, programmable world. Instead of watching a product demo, people scan a code, join from their phones, and change the same state together while a public screen shows every confirmed contribution.
 
-The first flagship experience is **CITY ZERO**: a neon floating district has lost power. The first confirmed action starts a 90-second mission. At least three participants must coordinate a generator, two habitats, a bio-garden, and a signal beacon. No single player has enough build allowance to complete the mission alone.
+The first flagship experience is **CITY ZERO**: a neon floating district has lost power. The first confirmed action starts a 90-second mission. Players join POWER, HABITAT, or LIFELINE and contribute through one primary action instead of navigating a builder interface. At least three participants must coordinate a generator, two habitats, a bio-garden, and a signal beacon. No single player has enough build allowance to complete the mission alone.
 
 The smart contract is not decorative storage. It is the authoritative game engine: it enforces the map, build allowance, ownership, power routing, deadline, and win condition. The result is a replayable **Proof of Coordination**.
 
@@ -30,8 +30,8 @@ CITY ZERO is one scenario. The same engine can later support festival activation
 
 1. Put `play.html?wall=1` on the main screen.
 2. Audience members scan the room QR code and join from their phones.
-3. The first confirmed build starts the clock.
-4. Players divide the mission because one allowance cannot fund every objective.
+3. Players choose POWER, HABITAT, or LIFELINE; the first confirmed contribution starts the clock.
+4. Each phone exposes one clear next move. Players divide the mission because one allowance cannot fund every objective.
 5. The contract validates each action and the city lights up in real time.
 6. Success unlocks free-build mode; timeout freezes the district as a final record.
 
@@ -54,7 +54,10 @@ py -3.12 -m http.server 8000 --bind 127.0.0.1 --directory frontend
 Start-Process 'http://127.0.0.1:8000/'
 ```
 
-Select a module, choose an adjacent tile, and confirm. Use `R` to rotate, `1`–`7` to choose modules, and WASD/Space to explore the district.
+Choose a crew and use its large contribution button. The deterministic practice path is POWER once, HABITAT twice, and LIFELINE twice across roles A/B/C. Advanced Build Mode preserves manual placement; WASD/Space explores the district.
+
+The competition positioning, exact stage flow, measurement rules, and remaining
+Monad validation work are documented in [docs/MONAD_BLITZ_DEMO.md](docs/MONAD_BLITZ_DEMO.md).
 
 ## Run a local multiplayer room on Windows
 

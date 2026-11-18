@@ -21,6 +21,32 @@ export const LABELS = [
   "城市核心",
 ];
 export const COST = [0, 1, 5, 3, 3, 3, 3, 6];
+export const CREWS = [
+  {
+    id: "power",
+    label: "POWER",
+    zh: "电力组",
+    kinds: [2],
+    cells: [41],
+    verb: "启动风力塔",
+  },
+  {
+    id: "habitat",
+    label: "HABITAT",
+    zh: "居住组",
+    kinds: [3, 3],
+    cells: [49, 50],
+    verb: "接通居住舱",
+  },
+  {
+    id: "lifeline",
+    label: "LIFELINE",
+    zh: "生命线组",
+    kinds: [4, 7],
+    cells: [39, 31],
+    verb: "恢复生态与信号",
+  },
+];
 export const cellFor = (x, z) => (z + 4) * 9 + x + 4;
 export const position = (i) => ({ x: (i % 9) - 4, z: Math.floor(i / 9) - 4 });
 export function validCell(i) {
@@ -35,6 +61,46 @@ export function neighbors(i) {
     i >= 9 ? i - 9 : -1,
     i < 72 ? i + 9 : -1,
   ].filter((n) => n >= 0);
+}
+function availableCell(kinds, preferred) {
+  for (const cell of preferred)
+    if (validCell(cell) && !kinds[cell] && neighbors(cell).some((i) => kinds[i]))
+      return cell;
+  for (let cell = 0; cell < 81; cell++)
+    if (
+      validCell(cell) &&
+      cell !== 40 &&
+      !kinds[cell] &&
+      neighbors(cell).some((i) => kinds[i])
+    )
+      return cell;
+  return null;
+}
+export function nextContribution(snapshot, crewId) {
+  const crew = CREWS.find((item) => item.id === crewId);
+  if (!crew) throw Error("Unknown crew");
+  const built = (kind) => snapshot.kinds.filter((item) => item === kind).length;
+  const missing =
+    crew.id === "power"
+      ? built(2) < 1
+        ? 0
+        : -1
+      : crew.id === "habitat"
+        ? built(3) < 1
+          ? 0
+          : built(3) < 2
+            ? 1
+            : -1
+        : built(4) < 1
+          ? 0
+          : built(7) < 1
+            ? 1
+            : -1;
+  if (missing < 0) return null;
+  const cell = availableCell(snapshot.kinds, [crew.cells[missing]]);
+  return cell === null
+    ? null
+    : { type: "build", cell, kind: crew.kinds[missing], rotation: 0 };
 }
 export function power(kinds, participants) {
   const connected = new Set([40]),

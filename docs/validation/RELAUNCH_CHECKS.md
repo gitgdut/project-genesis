@@ -27,14 +27,14 @@ node --check frontend/sandbox/scene.js
 git diff --check
 ```
 
-- Python: **638 passed in 34.69s**, no skips. This includes the original
+- Python: **638 passed in 28.29s**, no skips. This includes the original
   simulation/harness checks and three new relay/static-wiring checks.
 - Strict mypy: **26 source files clean**.
 - Solidity: **13 passed**, including the 256-case refund fuzz test. These
   cover deadline start/expiry, success persistence/free-build, cooperation,
   disconnected power, removal of excess load completing the goal, bounds,
   occupied-tile races, owner-only removal and allowance conservation.
-- Node: **21 passed** (5 new community model checks, 7 earlier builder
+- Node: **22 passed** (6 community model checks, 7 earlier builder
   checks, 9 earlier observatory checks).
 - Existing engine: **10/10 golden worlds**, **3/3 golden epochs** and
   **5/5 demo rehearsal assertions**. Their source was preserved.
@@ -70,10 +70,12 @@ of Monad throughput, cost or finality.
 
 The built-in browser automation call failed before creating a controllable
 preview: `failed to write kernel assets` / missing path. The independent
-Windows computer-use runtime returned the same startup failure. No browser
-input was successfully issued for this relaunch, so no new screenshot,
-WebGL rendering success, responsive layout success or mobile hardware
-verification is claimed. Opening a preview panel is not a passing UI test.
+Windows computer-use runtime returned the same startup failure. Microsoft
+Edge headless subsequently rendered the first-run briefing at **390×844**
+and the projector view at **1440×900** from a local HTTP server; both produced
+non-empty screenshots and the WebGL city appeared in the projector render.
+This is a rendering smoke check only: no browser input or real mobile hardware
+was exercised, and no Mobile Safari compatibility claim is made.
 
 No public Monad contract deployment or wallet transaction was executed.
 The creation/joining UI and read gateway are implemented and were exercised

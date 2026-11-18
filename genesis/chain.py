@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 CHAIN_JSON_PATH = Path(__file__).resolve().parent.parent / "frontend" / "chain.json"
 
@@ -20,7 +20,7 @@ CHAIN_JSON_PATH = Path(__file__).resolve().parent.parent / "frontend" / "chain.j
 def load_chain_facts() -> dict[str, Any]:
     """Load the verified chain facts from ``frontend/chain.json``."""
     try:
-        return json.loads(CHAIN_JSON_PATH.read_text(encoding="utf-8"))
+        return cast(dict[str, Any], json.loads(CHAIN_JSON_PATH.read_text(encoding="utf-8")))
     except FileNotFoundError:
         raise FileNotFoundError(
             f"shared chain facts missing: {CHAIN_JSON_PATH} not found"

@@ -26,7 +26,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from genesis import __version__
-from genesis.betting import place_bet, settle_epoch
+from genesis.betting import Bet, place_bet, settle_epoch
 from genesis.chain import load_chain_facts, real_testnet_text
 from genesis.epoch import CIV_NAMES, run_epoch
 from genesis.harness.cli import register as register_scenario_commands
@@ -215,7 +215,7 @@ def cmd_epoch(args: argparse.Namespace) -> int:
     )
     output: dict[str, object] = {"epoch": epoch}
     if args.bet:
-        bets: list = []
+        bets: list[Bet] = []
         for spec in args.bet:
             player, civ, amount = _parse_bet(spec, epoch["epoch_id"], [c["id"] for c in epoch["civs"]])
             bets = place_bet(

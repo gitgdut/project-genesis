@@ -66,8 +66,8 @@ class Bet:
             raise ValueError("a bet must have exactly the fields player, civ, amount, epoch_id")
         return cls(
             player=str(data["player"]),
-            civ=int(data["civ"]),  # type: ignore[arg-type]
-            amount=int(data["amount"]),  # type: ignore[arg-type]
+            civ=int(data["civ"]),
+            amount=int(data["amount"]),
             epoch_id=str(data["epoch_id"]),
         )
 

@@ -40,25 +40,25 @@ a {
   outline: 2px solid #d7b9ff;
   outline-offset: 5px;
 }
-#island {
+.key-art {
   position: absolute;
-  right: -7%;
-  top: 25px;
-  width: 79%;
-  height: 690px;
-  touch-action: none;
+  inset: 0 0 auto 0;
+  width: 100%;
+  height: 780px;
+  object-fit: cover;
+  object-position: center top;
+  filter: saturate(1.08) contrast(1.04);
+  user-select: none;
+  pointer-events: none;
 }
 .veil {
   position: absolute;
   inset: 0;
   height: 740px;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    #090512 16%,
-    #090512e8 32%,
-    transparent 65%
-  );
+  background:
+    linear-gradient(90deg, #090512 0%, #090512ed 29%, transparent 66%),
+    linear-gradient(0deg, #090512 0%, transparent 42%);
 }
 header {
   position: relative;
@@ -88,6 +88,15 @@ main {
   font-size: 9px;
   letter-spacing: 3px;
   color: #ff8fc7;
+}
+.eyebrow span {
+  display: inline-block;
+  margin-right: 12px;
+  padding: 5px 8px;
+  color: #fff;
+  background: #ff3f9e;
+  letter-spacing: 1.5px;
+  box-shadow: 0 0 24px #ff3f9e80;
 }
 h1 {
   font-size: clamp(58px, 6.3vw, 92px);
@@ -149,7 +158,8 @@ em {
   margin: 0 5%;
   padding: 30px 0;
   border-top: 1px solid #b595d72b;
-  background: #0d0719d6;
+  background: linear-gradient(90deg, #0d0719f2, #21102af0);
+  backdrop-filter: blur(20px);
 }
 .steps > div > span {
   font-size: 9px;
@@ -219,15 +229,16 @@ footer div {
     font-size: 8px;
     letter-spacing: 2px;
   }
-  #island {
-    right: 0;
-    top: 380px;
-    width: 100%;
-    height: 420px;
+  .key-art {
+    height: 720px;
+    object-position: 66% top;
+    opacity: 0.86;
   }
   .veil {
     height: 600px;
-    background: linear-gradient(#171125 55%, transparent);
+    background:
+      linear-gradient(180deg, #090512c4 0%, #0905121a 50%, #090512 100%),
+      linear-gradient(90deg, #090512dc 0%, transparent 85%);
   }
   .steps {
     grid-template-columns: 1fr;

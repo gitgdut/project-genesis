@@ -1,5 +1,8 @@
 # Island Lab: the Blitz demo
 
+> Earlier single-player prototype. Current product entry and shared-room
+> implementation: [RELAUNCH.md](RELAUNCH.md).
+
 ## Product and demo story
 
 GENESIS Island Lab is a small community construction sandbox. Start with a

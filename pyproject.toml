@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "project-genesis"
 dynamic = ["version"]
-description = "A deterministic, programmable civilization simulation platform (v0.1 MVP)."
+description = "A cooperative on-chain construction game with deterministic simulation tools."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []

@@ -1,5 +1,9 @@
 # Monad Blitz research and GENESIS decision — 2026-11-18
 
+> Research snapshot before the UI relaunch. Current integrated implementation
+> and executed checks: [RELAUNCH.md](RELAUNCH.md). Remaining-work statements
+> below describe the earlier research branch, not the new release.
+
 ## Decision
 
 **GENESIS: scan, build together, restore a shared on-chain island.**

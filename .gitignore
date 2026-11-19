@@ -9,6 +9,11 @@ dist/
 .venv/
 venv/
 
+# Local secrets. Keep the example template tracked.
+/.env
+/.env.*
+!/.env.example
+
 # Tooling caches
 .pytest_cache/
 .mypy_cache/

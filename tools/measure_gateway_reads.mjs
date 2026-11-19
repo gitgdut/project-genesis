@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Measure the existing CommunityGateway.read() path without changing it.
+ * Measure the CommunityGateway.read() transport path.
  *
  * This diagnostic uses the production gateway class with an instrumented
  * JSON-RPC request function. It performs reads only, never signs or sends a
@@ -16,18 +16,19 @@ import { CommunityGateway, MONAD } from "../frontend/community/gateway.js";
 
 const DEFAULT_CONTRACT = "0xb1EEA6F45B37098f62Fe6cA484441F846eb42C1A";
 const DEFAULT_ACTOR = "0xc338e05fD4F8322E1562DB052c42995223254B97";
-const DEFAULT_OUTPUT = "docs/examples/monad-gateway-read-baseline.json";
+const DEFAULT_OUTPUT = "docs/examples/monad-gateway-batch-results.json";
 
 function usage() {
   return `Usage: node tools/measure_gateway_reads.mjs [options]
 
-Measure the unchanged CommunityGateway.read() path against Monad Testnet.
+Measure the CommunityGateway.read() path against Monad Testnet.
 This tool is read-only and never loads a private key.
 
 Options:
   --rpc <url>          HTTP JSON-RPC endpoint (default: ${MONAD.rpc})
   --contract <address> GenesisCommunity address (default: ${DEFAULT_CONTRACT})
   --actor <address>    Public address used for allowance read (default: ${DEFAULT_ACTOR})
+  --mode <batch|single> Transport mode (default: batch)
   --samples <count>    Recorded reads (default: 30)
   --warmup <count>     Unrecorded warm-up reads (default: 3)
   --delay-ms <ms>      Delay between reads (default: 500)
@@ -49,6 +50,7 @@ function parseArgs(argv) {
     rpc: MONAD.rpc,
     contract: DEFAULT_CONTRACT,
     actor: DEFAULT_ACTOR,
+    mode: "batch",
     samples: 30,
     warmup: 3,
     delayMs: 500,
@@ -64,6 +66,7 @@ function parseArgs(argv) {
     if (option === "--rpc") options.rpc = value;
     else if (option === "--contract") options.contract = value;
     else if (option === "--actor") options.actor = value;
+    else if (option === "--mode") options.mode = value;
     else if (option === "--samples")
       options.samples = parseInteger(value, option, 1, 500);
     else if (option === "--warmup")
@@ -78,6 +81,8 @@ function parseArgs(argv) {
   }
   if (!/^https?:\/\//i.test(options.rpc))
     throw new Error("--rpc must be an HTTP(S) URL");
+  if (!["batch", "single"].includes(options.mode))
+    throw new Error("--mode must be batch or single");
   for (const [option, value] of [
     ["--contract", options.contract],
     ["--actor", options.actor],
@@ -151,7 +156,10 @@ class MeasuredRpc {
     const started = performance.now();
     const record = {
       method,
+      rpcMethods: [method],
       blockTag: method === "eth_call" ? (params[1] ?? null) : null,
+      blockTags: method === "eth_call" ? [params[1] ?? null] : [],
+      batchSize: 1,
       durationMs: null,
       httpStatus: null,
       responseBytes: null,
@@ -189,15 +197,76 @@ class MeasuredRpc {
       record.durationMs = rounded(performance.now() - started);
     }
   }
+
+  async batch(calls) {
+    const started = performance.now(),
+      requests = calls.map(({ method, params }, index) => ({
+        jsonrpc: "2.0",
+        id: this.nextId + index,
+        method,
+        params,
+      })),
+      record = {
+        method: "rpc_batch",
+        rpcMethods: calls.map(({ method }) => method),
+        blockTag: null,
+        blockTags: calls.flatMap(({ method, params }) =>
+          method === "eth_call" ? [params[1] ?? null] : [],
+        ),
+        batchSize: calls.length,
+        durationMs: null,
+        httpStatus: null,
+        responseBytes: null,
+        ok: false,
+      };
+    this.nextId += calls.length;
+    if (this.capture) this.capture.requests.push(record);
+    try {
+      const response = await fetch(this.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requests),
+        signal: AbortSignal.timeout(this.timeoutMs),
+      });
+      record.httpStatus = response.status;
+      const text = await response.text();
+      record.responseBytes = Buffer.byteLength(text);
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        throw new Error("Batch returned invalid JSON");
+      }
+      if (!response.ok) throw new Error(`Batch returned HTTP ${response.status}`);
+      if (!Array.isArray(body))
+        throw new Error("RPC endpoint rejected JSON-RPC batch");
+      const expected = new Set(requests.map(({ id }) => id)),
+        byId = new Map();
+      for (const item of body) {
+        if (!item || !expected.has(item.id) || byId.has(item.id))
+          throw new Error("Batch returned an unexpected response id");
+        byId.set(item.id, item);
+      }
+      const results = requests.map(({ id, method }) => {
+        const item = byId.get(id);
+        if (!item) throw new Error(`Batch omitted response for ${method}`);
+        if (item.error) throw new Error(`${method}: ${item.error.message}`);
+        if (!("result" in item)) throw new Error(`${method} omitted result`);
+        return item.result;
+      });
+      record.ok = true;
+      return results;
+    } finally {
+      record.durationMs = rounded(performance.now() - started);
+    }
+  }
 }
 
 function sampleResult(index, durationMs, requests, snapshot, error) {
-  const methodCounts = countBy(requests.map((request) => request.method));
+  const methodCounts = countBy(requests.flatMap((request) => request.rpcMethods));
   const blockTags = [
     ...new Set(
-      requests
-        .filter((request) => request.method === "eth_call")
-        .map((request) => request.blockTag),
+      requests.flatMap((request) => request.blockTags),
     ),
   ];
   const allRequestsSucceeded = requests.every((request) => request.ok);
@@ -258,6 +327,7 @@ async function main() {
     options.contract,
     MONAD.id,
     build.runtimeHash,
+    options.mode === "batch" ? rpc.batch.bind(rpc) : null,
   );
 
   rpc.begin("preflight");
@@ -274,7 +344,9 @@ async function main() {
     ok: true,
     durationMs: rounded(performance.now() - preflightStarted),
     httpRequestCount: preflightRequests.length,
-    rpcMethodCounts: countBy(preflightRequests.map((request) => request.method)),
+    rpcMethodCounts: countBy(
+      preflightRequests.flatMap((request) => request.rpcMethods),
+    ),
   };
 
   process.stdout.write(
@@ -307,7 +379,7 @@ async function main() {
   const successful = samples.filter((sample) => sample.ok);
   const allRequests = samples.flatMap((sample) => sample.requests);
   const report = {
-    format: "genesis.monad-gateway-read-baseline.v1",
+    format: `genesis.monad-gateway-read-${options.mode}.v1`,
     measuredAt: new Date().toISOString(),
     publicMonadTestnet: true,
     chainId: Number(BigInt(MONAD.id)),
@@ -321,6 +393,7 @@ async function main() {
       delayMs: options.delayMs,
       timeoutMs: options.timeoutMs,
       actorIncluded: true,
+      mode: options.mode,
     },
     preflight,
     warmupSummary: {
@@ -337,7 +410,9 @@ async function main() {
         successful.map((sample) => sample.httpRequestCount),
       ),
       totalHttpRequestCount: allRequests.length,
-      rpcMethodCounts: countBy(allRequests.map((request) => request.method)),
+      rpcMethodCounts: countBy(
+        allRequests.flatMap((request) => request.rpcMethods),
+      ),
       pinnedToSnapshotBlockCount: successful.filter(
         (sample) => sample.pinnedToSnapshotBlock,
       ).length,

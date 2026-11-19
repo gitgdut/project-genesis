@@ -4,6 +4,10 @@
 执行分支：`feat/monad-integration`  
 基线提交：`129bdf074a931d316d9cda52a263b386ad5ad9a6`
 
+延迟基线补测：2026-11-19 14:40（Asia/Shanghai）
+
+原始报告：[`docs/examples/monad-latency-baseline.json`](examples/monad-latency-baseline.json)
+
 > 本文件包含同一结果的两个版本。第一部分给不熟悉技术的队友阅读，第二部分给技术队友复核。本文只记录实际执行结果，不把本地验证写成 Monad 公网部署。
 
 ---
@@ -31,13 +35,31 @@
 - 建造后的链上状态与预期一致：1 位参与者、版本 1、剩余额度 7。
 - 链上合约代码哈希与网页内置版本完全一致。
 - 使用项目自身前端网关成功读取公网房间。
+- 另建一个独立测试房间，连续完成 3 笔真实建造交易，用来测量 Monad 的确认速度。
+- 三笔交易全部成功，WebSocket 也都收到了 proposed、voted 和 finalized 通知。
+
+### 实际速度
+
+三笔真实建造交易的中位数结果如下：
+
+| 用户关心的阶段 | 中位时间 | 含义 |
+|---|---:|---|
+| 收到交易哈希 | 约 1.17 秒 | 钱包提交已被 RPC 接收 |
+| 进入 proposed 区块 | 约 1.70 秒 | 可以开始给用户快速反馈 |
+| 查到成功回执 | 约 1.77 秒 | 可以确认本次操作执行成功 |
+| 达到 safe | 约 2.15 秒 | 区块进入更稳妥的确认阶段 |
+| 达到 finalized | 约 2.35 秒 | 区块最终确认 |
+
+这说明 Monad 本身的确认速度不是当前体验的主要瓶颈。网页目前每 5 到 7 秒轮询一次，可能比链上最终确认还慢；下一阶段应优先优化网页读取和实时通知。
+
+这组数据来自 3 笔测试网交易，只作为当前开发基线，不代表任何时间、网络负载下都固定达到同样速度。
 
 ### 仍待完成
 
 - 尚未用真实浏览器钱包完成点击建造；本次真实交易由同一测试钱包通过 Foundry `cast` 签名提交。
 - 尚未完成浏览器视觉验收和手机验收。
 - 尚未使用三个不同钱包完成整局。
-- 尚未开始 WebSocket 优化。
+- 尚未把 WebSocket 接入游戏刷新逻辑；本次仅确认 WebSocket 可用并记录其通知时间。
 
 ### 公开记录
 
@@ -234,7 +256,7 @@ phase at first verification: 1
 | 前端 runtime hash 校验通过 | 完成 | 实际运行 `CommunityGateway.check()` 通过 |
 | 钱包成功提交一笔 `build()` | 完成 | `0xe725...c3a`，由测试钱包通过 `cast` 签名 |
 | 浏览器显示已确认建筑 | 未完成 | 前端网关读取通过，但尚未进行真实浏览器视觉验收 |
-| 记录真实 Gas 与确认时间 | 部分完成 | Gas精确记录；工具墙钟约6.5秒，不作为纯finality指标 |
+| 记录真实 Gas 与确认时间 | 完成 | 首笔建造 Gas 已记录；另以 3 笔交易测得 proposed/receipt/safe/finalized 延迟 |
 
 ### 8. 前端网关公网验证
 
@@ -262,15 +284,61 @@ CommunityGateway(publicRpc, contract, MONAD.id, build.runtimeHash)
 
 这验证了生产前端的数据层可以连接、校验并解析该公网房间，但不替代真实浏览器/WebGL视觉验收。
 
-### 9. 下一步
+### 9. Monad 延迟与 WebSocket 基线
+
+为避免原部署房间状态影响测量，测速脚本部署了一个独立的 `GenesisCommunity` 房间，并连续提交 3 笔 `build()` 交易。测速没有修改合约、前端或玩法代码。
+
+测试对象：
+
+| 字段 | 结果 |
+|---|---|
+| 测试合约 | `0xe786F0d333DA0d4d4d4a6Febd25F3Cf0A7B463B3` |
+| 部署交易 | `0x0f84f9eb2d312f06dc21f37f19bad2e559d0b8f281652bc2789b2f77770baed9` |
+| Runtime SHA-256 | `d533e927d7ac30954d1c1491663c42058021f26754395fcb8fc728a8d52d5b2b` |
+| HTTP RPC | `https://testnet-rpc.monad.xyz` |
+| WebSocket | `wss://testnet-rpc.monad.xyz` |
+| 样本数 | 3 |
+
+三笔交易：
+
+| Cell | Transaction | Block | Gas used |
+|---:|---|---:|---:|
+| 39 | `0xd0fcaffad672a4926e686966c294570ca3feeeb965b2311ccb042cb00c81dd47` | `80,966,790` | `214,267` |
+| 38 | `0x1d6e9ec93756cd4ae348b5df2bbeeb3257e49708987e0e6e93bd62860e90e27b` | `80,966,798` | `127,109` |
+| 37 | `0x3928f1749458bd7cd33fdb21c1ba8376009461f8b093eaab6a920d8542c4a72f` | `80,966,808` | `131,787` |
+
+端到端中位延迟（从开始提交交易计时）：
+
+| 阶段 | 中位延迟 |
+|---|---:|
+| 返回 transaction hash | `1,165.701 ms` |
+| WebSocket proposed | `1,698.472 ms` |
+| HTTP receipt | `1,768.045 ms` |
+| WebSocket voted | `2,007.268 ms` |
+| HTTP safe | `2,154.358 ms` |
+| HTTP finalized | `2,347.393 ms` |
+
+验证结果：
+
+- 3 笔交易的 receipt 均为成功。
+- `monadLogs` 成功捕获 proposed、voted 和 finalized 阶段。
+- 测试结束后链上 `cell 39/38/37` 均为 `kind=1`，`revision=3`、`participants=1`、剩余额度 `9`。
+- 测试合约 runtime hash 与前端预期值一致。
+- 原始 JSON 不包含私钥，仅包含公开链上数据和测量结果。
+- `verifiedLatencyMs` 为 `null`，表示本轮没有等待/测量 verified 阶段，不表示交易失败。
+
+完整机器可读结果见 [`docs/examples/monad-latency-baseline.json`](examples/monad-latency-baseline.json)。样本量只有 3，适合作为后续 Batch RPC 和 WebSocket 优化的对照基线，不应解释为性能保证。
+
+### 10. 下一步
 
 1. 使用注入钱包的真实浏览器打开 `play.html?room=0xb1EEA6F45B37098f62Fe6cA484441F846eb42C1A`。
 2. 完成视觉、拒签、刷新恢复和手机测试。
 3. 用三个不同测试钱包部署新房间并完成整局，因为当前基线房间在首笔建造后已启动90秒计时。
-4. 建立精确的 submitted/proposed/safe/finalized 时间测量。
-5. 基线稳定后再实现 Batch RPC 与 Monad WebSocket。
+4. 对当前 `CommunityGateway.read()` 做 30 次读取基线，记录请求数、P50/P95 和一致性。
+5. 在保持按同一区块读取语义的前提下实现 Batch RPC，并保留逐项调用回退。
+6. 使用 WebSocket 事件触发权威状态重读，同时保留轮询和断线补读。
 
-### 10. 本轮没有进行的操作
+### 11. 本轮没有进行的操作
 
 - 没有修改玩法。
 - 没有修改 `GenesisCommunity.sol`。

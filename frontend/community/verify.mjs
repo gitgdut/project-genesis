@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  CREWS,
   Practice,
   power,
   validateAction,
   sceneView,
   cellFor,
+  nextContribution,
 } from "./domain.js";
 import { encodeAction, words } from "./gateway.js";
 test("three roles restore the island; removing the source changes the actual goal", () => {
@@ -91,4 +93,22 @@ test("malformed practice imports cannot change balances or inject snapshots", ()
       rotation: 0,
     }),
   );
+});
+
+test("crowd crews produce deterministic one-tap contributions", () => {
+  const world = new Practice();
+  const expected = [
+    ["A", "power", 2],
+    ["B", "habitat", 3],
+    ["C", "lifeline", 4],
+    ["B", "habitat", 3],
+    ["C", "lifeline", 7],
+  ];
+  for (const [actor, crew, kind] of expected) {
+    const action = nextContribution(world.snapshot(), crew);
+    assert.equal(action.kind, kind);
+    world.apply(actor, action);
+  }
+  assert.equal(world.snapshot().restored, true);
+  assert.equal(CREWS.every((crew) => nextContribution(world.snapshot(), crew.id) === null), true);
 });

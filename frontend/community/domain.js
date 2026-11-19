@@ -11,16 +11,42 @@ export const TYPES = [
 ];
 export const LABELS = [
   "",
-  "能量桥",
+  "电网线",
   "风力塔",
-  "居民舱",
+  "居住舱",
   "生态园",
-  "木工坊",
+  "制造厂",
   "晶石坊",
-  "星际信标",
-  "创世核心",
+  "信标",
+  "城市核心",
 ];
 export const COST = [0, 1, 5, 3, 3, 3, 3, 6];
+export const CREWS = [
+  {
+    id: "power",
+    label: "POWER",
+    zh: "电力组",
+    kinds: [2],
+    cells: [41],
+    verb: "启动风力塔",
+  },
+  {
+    id: "habitat",
+    label: "HABITAT",
+    zh: "居住组",
+    kinds: [3, 3],
+    cells: [49, 50],
+    verb: "接通居住舱",
+  },
+  {
+    id: "lifeline",
+    label: "LIFELINE",
+    zh: "生命线组",
+    kinds: [4, 7],
+    cells: [39, 31],
+    verb: "恢复生态与信号",
+  },
+];
 export const cellFor = (x, z) => (z + 4) * 9 + x + 4;
 export const position = (i) => ({ x: (i % 9) - 4, z: Math.floor(i / 9) - 4 });
 export function validCell(i) {
@@ -35,6 +61,46 @@ export function neighbors(i) {
     i >= 9 ? i - 9 : -1,
     i < 72 ? i + 9 : -1,
   ].filter((n) => n >= 0);
+}
+function availableCell(kinds, preferred) {
+  for (const cell of preferred)
+    if (validCell(cell) && !kinds[cell] && neighbors(cell).some((i) => kinds[i]))
+      return cell;
+  for (let cell = 0; cell < 81; cell++)
+    if (
+      validCell(cell) &&
+      cell !== 40 &&
+      !kinds[cell] &&
+      neighbors(cell).some((i) => kinds[i])
+    )
+      return cell;
+  return null;
+}
+export function nextContribution(snapshot, crewId) {
+  const crew = CREWS.find((item) => item.id === crewId);
+  if (!crew) throw Error("Unknown crew");
+  const built = (kind) => snapshot.kinds.filter((item) => item === kind).length;
+  const missing =
+    crew.id === "power"
+      ? built(2) < 1
+        ? 0
+        : -1
+      : crew.id === "habitat"
+        ? built(3) < 1
+          ? 0
+          : built(3) < 2
+            ? 1
+            : -1
+        : built(4) < 1
+          ? 0
+          : built(7) < 1
+            ? 1
+            : -1;
+  if (missing < 0) return null;
+  const cell = availableCell(snapshot.kinds, [crew.cells[missing]]);
+  return cell === null
+    ? null
+    : { type: "build", cell, kind: crew.kinds[missing], rotation: 0 };
 }
 export function power(kinds, participants) {
   const connected = new Set([40]),
@@ -78,6 +144,7 @@ export function power(kinds, participants) {
 export function sceneView(snapshot) {
   const colors = ["#b99aff", "#9fb9ad", "#d7b88c"];
   return {
+    restored: Boolean(snapshot.restored),
     modules: snapshot.kinds.flatMap((k, i) => {
       if (!k) return [];
       const owner = snapshot.owners[i] ?? "",
@@ -104,7 +171,8 @@ export function sceneView(snapshot) {
 }
 export function validateAction(board, actor, balance, action) {
   const { cell, type, kind, rotation = 0 } = action;
-  if (!validCell(cell) || cell === 40) throw Error("请选择岛内的可建造地块");
+  if (!validCell(cell) || cell === 40)
+    throw Error("Choose an available district tile");
   if (type === "build") {
     if (
       !Number.isInteger(kind) ||
@@ -114,18 +182,20 @@ export function validateAction(board, actor, balance, action) {
       rotation < 0 ||
       rotation > 3
     )
-      throw Error("无效模块或方向");
-    if (board.kinds[cell]) throw Error("这块地已经被建造，请刷新后选择空地");
+      throw Error("Invalid module or orientation");
+    if (board.kinds[cell])
+      throw Error("This tile is occupied; refresh and choose another");
     if (!neighbors(cell).some((i) => board.kinds[i]))
-      throw Error("请贴着核心或已有建筑组装");
-    if (balance < COST[kind]) throw Error("建造额度不足，可以拆回自己的模块");
+      throw Error("Connect to the core or an existing module");
+    if (balance < COST[kind])
+      throw Error("Not enough build credits; reclaim one of your modules");
   } else if (type === "remove") {
     if (
       !board.kinds[cell] ||
       board.owners[cell]?.toLowerCase() !== actor?.toLowerCase()
     )
-      throw Error("只能拆解自己建造的模块");
-  } else throw Error("未知操作");
+      throw Error("You can only reclaim modules you built");
+  } else throw Error("Unknown action");
 }
 export class Practice {
   constructor() {
@@ -148,8 +218,9 @@ export class Practice {
     };
   }
   apply(actor, action) {
-    if (!["A", "B", "C"].includes(actor)) throw Error("未知练习角色");
-    if (this.trace.length >= 240) throw Error("练习已达 240 步，请保存后重开");
+    if (!["A", "B", "C"].includes(actor)) throw Error("Unknown practice role");
+    if (this.trace.length >= 240)
+      throw Error("Practice reached 240 actions; export and restart");
     const balance = this.balances[actor] ?? 12;
     validateAction(this, actor, balance, action);
     const { cell, type, kind, rotation = 0 } = action;
@@ -183,7 +254,7 @@ export class Practice {
   }
   static restore(text) {
     if (typeof text !== "string" || text.length > 40000)
-      throw Error("练习记录过大");
+      throw Error("Practice trace is too large");
     const d = JSON.parse(text);
     if (
       d.format !== "genesis.community.practice" ||
@@ -191,10 +262,10 @@ export class Practice {
       !Array.isArray(d.actions) ||
       d.actions.length > 240
     )
-      throw Error("不支持的练习记录");
+      throw Error("Unsupported practice trace");
     const w = new Practice();
     for (const a of d.actions) w.apply(a.actor, a);
-    if (w.export() !== text) throw Error("非规范练习记录");
+    if (w.export() !== text) throw Error("Non-canonical practice trace");
     return w;
   }
 }
